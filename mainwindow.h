@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QListWidgetItem>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -19,6 +20,10 @@ public:
 
 private slots:
     void on_pushButton_clicked();
+    void on_pushButton_2_clicked();
+    void on_pushButton_3_clicked();
+    void on_deckListWidget_itemClicked(QListWidgetItem *item);
+    void on_deckListWidget_addDeck(/*QListWidgetItem *item*/);
 
 private:
     Ui::MainWindow *ui;
