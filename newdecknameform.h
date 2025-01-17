@@ -15,6 +15,9 @@ public:
     explicit newdecknameform(QWidget *parent = nullptr);
     ~newdecknameform();
 
+private slots:
+    void on_buttonBox_rejected();
+    void on_buttonBox_accepted();
 private:
     Ui::newdecknameform *ui;
 };

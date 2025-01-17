@@ -1,3 +1,4 @@
+#include "newdecknameform.h"
 #include "mainwindow.h"
 #include "./ui_mainwindow.h"
 
@@ -9,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
     // TODO: figure out why this gives a warning with No matching signal for on_deckListWidget_addDeck
-    connect(ui->pushButton_addDeck, SIGNAL(clicked()), this, SLOT(on_deckListWidget_addDeck()));
+    // connect(ui->pushButton_addDeck, SIGNAL(clicked()), this, SLOT(on_deckListWidget_addDeck()));
+    // addDeckForm = new Ui::newdecknameform;
+    connect(ui->pushButton_addDeck, SIGNAL(clicked()), this, SLOT(on_deckListWidget_addDeckPopup()));
 }
 
 MainWindow::~MainWindow()
@@ -41,13 +44,28 @@ void MainWindow::on_deckListWidget_itemClicked(QListWidgetItem *item)
 // slot to handle creation of new deck when 'Add Deck' button is pressed
 void MainWindow::on_deckListWidget_addDeck()
 {
-    qDebug() << "new deck added to list";
+    qDebug() << "new deck button clicked";
 
     // trigger popup window to enter in name for new deck
+    qDebug() << "new deck added";
     ui->deckListWidget->addItem("Test deck!");
 
-
-
     // need to check for name collisions
+
 }
 
+void MainWindow::on_deckListWidget_addDeckPopup()
+{
+    qDebug() << "dialogue popup";
+    // addDeckForm->exec();
+}
+
+void MainWindow::on_deckListWidget_addDeckPopupClose()
+{
+
+}
+
+void MainWindow::on_deckListWidget_addDeckPopupAccept()
+{
+
+}
