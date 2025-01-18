@@ -11,7 +11,6 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
     // TODO: figure out why this gives a warning with No matching signal for on_deckListWidget_addDeck
     // connect(ui->pushButton_addDeck, SIGNAL(clicked()), this, SLOT(on_deckListWidget_addDeck()));
-    // addDeckForm = new Ui::newdecknameform;
     connect(ui->pushButton_addDeck, SIGNAL(clicked()), this, SLOT(on_deckListWidget_addDeckPopup()));
 }
 
@@ -41,6 +40,7 @@ void MainWindow::on_deckListWidget_itemClicked(QListWidgetItem *item)
     qDebug() << "item selected with text: " << item->text();
 }
 
+// !!! TODO: might be able to delete this !!!
 // slot to handle creation of new deck when 'Add Deck' button is pressed
 void MainWindow::on_deckListWidget_addDeck()
 {
@@ -58,14 +58,9 @@ void MainWindow::on_deckListWidget_addDeckPopup()
 {
     qDebug() << "dialogue popup";
     // addDeckForm->exec();
+    // QDialog *addDeckDialog = new QDialog;
+    // addDeckDialog->exec();
+    newdecknameform *addDeckDialog = new newdecknameform;
+    addDeckDialog->exec();
 }
 
-void MainWindow::on_deckListWidget_addDeckPopupClose()
-{
-
-}
-
-void MainWindow::on_deckListWidget_addDeckPopupAccept()
-{
-
-}

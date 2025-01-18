@@ -25,7 +25,6 @@ void newdecknameform::on_buttonBox_rejected()
 // apply the entered name to the new list item
 void newdecknameform::on_buttonBox_accepted()
 {
-    qDebug() << "form accepted";
+    qDebug() << "form accepted, with text: " << ui->newDeckTextInput->toPlainText();
     // somehow return the name in the form to the mainwindow
 }
-

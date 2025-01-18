@@ -29,7 +29,7 @@
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
   </widget>
-  <widget class="QTextEdit" name="newDecktextInput">
+  <widget class="QTextEdit" name="newDeckTextInput">
    <property name="geometry">
     <rect>
      <x>50</x>

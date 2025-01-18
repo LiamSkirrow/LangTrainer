@@ -5,8 +5,6 @@
 #include <QListWidgetItem>
 #include "newdecknameform.h"
 
-// Ui::newdecknameform *addDeckForm;
-
 QT_BEGIN_NAMESPACE
 namespace Ui {
 class MainWindow;
@@ -27,8 +25,6 @@ private slots:
     void on_pushButton_3_clicked();
     void on_deckListWidget_itemClicked(QListWidgetItem *item);
     void on_deckListWidget_addDeckPopup();
-    void on_deckListWidget_addDeckPopupClose();
-    void on_deckListWidget_addDeckPopupAccept();
     void on_deckListWidget_addDeck(/* string containing name */);
 
 private:
