@@ -40,27 +40,26 @@ void MainWindow::on_deckListWidget_itemClicked(QListWidgetItem *item)
     qDebug() << "item selected with text: " << item->text();
 }
 
-// !!! TODO: might be able to delete this !!!
-// slot to handle creation of new deck when 'Add Deck' button is pressed
-void MainWindow::on_deckListWidget_addDeck()
-{
-    qDebug() << "new deck button clicked";
-
-    // trigger popup window to enter in name for new deck
-    qDebug() << "new deck added";
-    ui->deckListWidget->addItem("Test deck!");
-
-    // need to check for name collisions
-
-}
-
 void MainWindow::on_deckListWidget_addDeckPopup()
 {
-    qDebug() << "dialogue popup";
-    // addDeckForm->exec();
-    // QDialog *addDeckDialog = new QDialog;
-    // addDeckDialog->exec();
     newdecknameform *addDeckDialog = new newdecknameform;
     addDeckDialog->exec();
+    QString deckName = addDeckDialog->getDeckText();
+    // TODO: need to check if the cancel button was pressed
+    if(!addDeckDialog->Rejected){
+        ui->deckListWidget->addItem(deckName);
+    }
+
+    delete(addDeckDialog);
+
+    // debug
+    qDebug() << "New deck created, with name: " << deckName;
 }
+
+
+
+
+
+
+
 

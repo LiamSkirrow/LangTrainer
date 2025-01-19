@@ -14,6 +14,7 @@ class newdecknameform : public QDialog
 public:
     explicit newdecknameform(QWidget *parent = nullptr);
     ~newdecknameform();
+    QString getDeckText();
 
 private slots:
     void on_buttonBox_rejected();

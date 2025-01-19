@@ -25,7 +25,6 @@ private slots:
     void on_pushButton_3_clicked();
     void on_deckListWidget_itemClicked(QListWidgetItem *item);
     void on_deckListWidget_addDeckPopup();
-    void on_deckListWidget_addDeck(/* string containing name */);
 
 private:
     Ui::MainWindow *ui;
