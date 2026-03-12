@@ -16,6 +16,11 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
+    std::string str;
+
+public slots:
+    void on_addLangButton_clicked();
+    void receive_new_lang(const QString &lang);
 
 private:
     Ui::MainWindow *ui;
