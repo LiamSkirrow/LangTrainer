@@ -7,7 +7,7 @@ addlangwindow::addlangwindow(QWidget *parent)
 {
     ui->setupUi(this);
     // connect the 'ok' button click with the on_buttonBox_accepted() function
-    connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(on_buttonBox_accepted()));
+    // connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(on_buttonBox_accepted()));
     // connect the emit signal with the parent's receive_new_lang() function
     connect(this, SIGNAL(sendNewLanguageSignal(QString)), parent, SLOT(receive_new_lang(QString)));
 }
@@ -19,6 +19,6 @@ addlangwindow::~addlangwindow()
 
 void addlangwindow::on_buttonBox_accepted()
 {
-    emit sendNewLanguageSignal("Spanish");
+    emit sendNewLanguageSignal(ui->lineEdit->text());
     qInfo("button clicked!");
 }
