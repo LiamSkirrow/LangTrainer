@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "addlangwindow.h"
 #include "./ui_mainwindow.h"
+#include "yaml-cpp/yaml.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -19,7 +20,12 @@ void MainWindow::on_addLangButton_clicked()
     addlangwindow *addlangwin = new addlangwindow(this);
     addlangwin->setModal(true);
     addlangwin->exec();
-    // ui->langList->setText("hi");
+
+    YAML::Emitter out;
+    out << "Hello, World!";
+
+    qInfo("Here's the output YAML:\n%s", out.c_str());
+
 }
 
 void MainWindow::receive_new_lang(const QString &lang)
