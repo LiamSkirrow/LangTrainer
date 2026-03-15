@@ -1,0 +1,59 @@
+specs:
+  German:
+    numGenders: 3
+    genders: ['m', 'f', 'n']
+    numCases: 4
+    cases: ['nominative', 'accusative', 'dative', 'genitive']
+    nounsInflect: 0
+    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
+    tenses: ['present', 'future', 'simple_past', 'pres_perf']
+  Russian:
+    numGenders: 3
+    genders: ['m', 'f', 'n']
+    numCases: 6
+    cases: ['nominative', 'accusative', 'dative', 'genitive', 'instrumental', 'prepositional']
+    nounsInflect: 1
+    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']  
+  Polish:
+    numGenders: 3
+    genders: ['m', 'f', 'n']
+    numCases: 7
+    cases: ['nominative', 'accusative', 'dative', 'genitive', 'instrumental', 'vocative', 'locative']
+    nounsInflect: 1
+    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
+  French:
+    numGenders: 2
+    genders: ['m', 'f']
+    numCases: 0
+    cases: []
+    nounsInflect: 0
+    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
+  Spanish:
+    numGenders: 2
+    genders: ['m', 'f']
+    numCases: 0
+    cases: []
+    nounsInflect: 0
+    verbConjugations: ['1psing', '1ppl'] #, '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
+    tenses: ['present', 'present_cont'] #, 'future', 'simple_past', 'imperfect_past', 'present_perf', 'conditional']
+
+
+# TODO:
+# use English as a control, create langspec above for EN
+
+
+# Key
+#   1psing  = 1st person singular: ich
+#   1ppl    = 1st person plural: wir
+#   2pfam   = 2nd person familir: du
+#   2pfampl = 2nd person familir plural: ihr
+#   2ppol   = 2nd person polite/formal: Sie
+#   2ppolpl = 2nd person polite/formal plural: Sie
+#   3psing  = 3rd person singular: er/sie/es
+#   3ppl    = 3rd person plural: sie
+
+#   nounsInflect: determine whether the noun or the article inflects on case
+
+# NOTES:
+#  - all the fields must be replicated across languages, they are allowed to be
+#    empty however if that particular feature does not exist

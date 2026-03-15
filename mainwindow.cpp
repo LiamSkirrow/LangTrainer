@@ -21,10 +21,43 @@ void MainWindow::on_addLangButton_clicked()
     addlangwin->setModal(true);
     addlangwin->exec();
 
-    YAML::Emitter out;
-    out << "Hello, World!";
+    YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
 
-    qInfo("Here's the output YAML:\n%s", out.c_str());
+    if (lang_spec["specs"]["Spanish"]) {
+        qInfo("Spanish detected!");
+    }
+    else{
+        qInfo("Spanish not detected!");
+    }
+
+    const YAML::Node num_genders = lang_spec["specs"]["Spanish"]["numGenders"];
+    switch (num_genders.Type()) {
+    case YAML::NodeType::Null: qInfo("num_genders is a Null type"); break;
+    case YAML::NodeType::Scalar: qInfo("num_genders is a Scalar type"); break;
+    case YAML::NodeType::Sequence: qInfo("num_genders is a Sequence type"); break;
+    case YAML::NodeType::Map: qInfo("num_genders is a Map type"); break;
+    case YAML::NodeType::Undefined: qInfo("num_genders is a Undefined type"); break;
+    }
+    qInfo("numGenders: %d", num_genders.as<int>());
+
+    const YAML::Node gender_list = lang_spec["specs"]["Spanish"]["genders"];
+    switch (gender_list.Type()) {
+    case YAML::NodeType::Null: qInfo("gender_list is a Null type"); break;
+    case YAML::NodeType::Scalar: qInfo("gender_list is a Scalar type"); break;
+    case YAML::NodeType::Sequence: qInfo("gender_list is a Sequence type"); break;
+    case YAML::NodeType::Map: qInfo("gender_list is a Map type"); break;
+    case YAML::NodeType::Undefined: qInfo("gender_list is a Undefined type"); break;
+    }
+    std::list<std::string> gender_vec = gender_list.as<std::list<std::string>>();
+
+    for(std::string str : gender_vec){
+        qInfo("numGenders: %s", str.c_str());
+    }
+
+    // qInfo("genders: %d", gender_list.as<int>());
+
+    // std::ofstream fout("config.yaml");
+    // fout << config;
 
 }
 
