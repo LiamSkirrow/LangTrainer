@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <qlistwidget.h>
+#include "yaml-cpp/yaml.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,7 +24,12 @@ public slots:
     void on_addLangButton_clicked();
     void receive_new_lang(const QString &lang);
 
+private slots:
+    void on_langList_itemClicked(QListWidgetItem *item);
+
 private:
     Ui::MainWindow *ui;
+    YAML::Node supported_langs;
+    YAML::Node lang_database;
 };
 #endif // MAINWINDOW_H

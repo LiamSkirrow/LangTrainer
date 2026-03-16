@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 #include "addlangwindow.h"
 #include "./ui_mainwindow.h"
-#include "yaml-cpp/yaml.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,7 +10,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // read in the language spec YAML and populate the list of available languages
     YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    YAML::Node supported_langs = lang_spec["specs"];
+    YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+    supported_langs = lang_spec["specs"];
+    lang_database = lang_db["languages"];
 
     // iterate over the supported langs and add to the list
     switch (supported_langs.Type()) {
@@ -23,12 +24,22 @@ MainWindow::MainWindow(QWidget *parent)
     }
     qInfo("size: %zu", supported_langs.size());
 
+    switch (lang_database.Type()) {
+    case YAML::NodeType::Null: qInfo("lang_database is a Null type"); break;
+    case YAML::NodeType::Scalar: qInfo("lang_database is a Scalar type"); break;
+    case YAML::NodeType::Sequence: qInfo("lang_database is a Sequence type"); break;
+    case YAML::NodeType::Map: qInfo("lang_database is a Map type"); break;
+    case YAML::NodeType::Undefined: qInfo("lang_database is a Undefined type"); break;
+    }
+    qInfo("size: %zu", lang_database.size());
+
     // With for-range loop
     for (auto child : supported_langs) {
-        qInfo( "first: %s, second: ?", child.first.as<std::string>().c_str() );
+        qInfo( "found language in spec.YAML: %s", child.first.as<std::string>().c_str() );
         ui->langList->addItem(child.first.as<std::string>().c_str());
     }
 
+    // ui->langList->
 
 }
 
@@ -85,6 +96,11 @@ void MainWindow::on_addLangButton_clicked()
 
 void MainWindow::receive_new_lang(const QString &lang)
 {
-    // ui->langList->setText(lang);
-    qInfo("User selected lang");
+
 }
+
+void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
+{
+    qInfo("User selected lang: %s", item->text().toStdString().c_str());
+}
+
