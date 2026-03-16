@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36" version="28.2.6">
   <diagram name="Page-1" id="AhuM_V7o-4DsV0LAj1FR">
-    <mxGraphModel dx="2951" dy="2724" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2175" dy="2297" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -22,7 +22,7 @@
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-6" value="&lt;font style=&quot;font-size: 26px;&quot;&gt;LangTrainer&lt;/font&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="320" y="140" width="360" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-7" value="New Language" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-7" value="Create Language" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="375" y="260" width="105" height="30" as="geometry" />
         </mxCell>
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-8" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
@@ -34,13 +34,13 @@
             <mxPoint x="550" y="300" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-11" value="Available Languages" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-11" value="Available Fields" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="385" y="610" width="135" height="30" as="geometry" />
         </mxCell>
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-12" value="" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="392.5" y="640" width="185" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-13" value="Spanish&lt;div&gt;Italian&lt;br&gt;French&lt;/div&gt;&lt;div&gt;Japanese&lt;/div&gt;&lt;div&gt;Russian&lt;/div&gt;&lt;div&gt;Polish&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-13" value="Has&amp;nbsp; nouns genders? Has cases? etc..." style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="455" y="675" width="60" height="30" as="geometry" />
         </mxCell>
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-15" value="Done" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
@@ -149,9 +149,6 @@
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-49" value="Things not included:&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;ul&gt;&lt;li&gt;Custom language creation wizard. Allow people to create their own languages and define their own rulesets. Give ability for people to request that their custom language become upstreamed and part of the standard set of langs.&lt;/li&gt;&lt;li&gt;A more sophisticated verb modification algorithm for irregular verbs. Exceptional verbs still follow certain rules sometimes, so when people modify an ending for one subject, maybe modify the endings automatically for the same subject across all tenses etc. Make the process of modifying irregular verb conjugations overall less painful.&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="220" y="900" width="590" height="230" as="geometry" />
         </mxCell>
-        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-53" value="This below window is redundant, we can just list all the langs supported in the main window in a scrollable list" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
-          <mxGeometry x="430" y="535" width="320" height="30" as="geometry" />
-        </mxCell>
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-54" value="mainWindow" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="350" y="50" width="90" height="30" as="geometry" />
         </mxCell>
@@ -175,6 +172,9 @@
         </mxCell>
         <mxCell id="S-Zx8-YwdgRQVwYKoTbn-62" value="TODO implementation:&lt;div&gt;&lt;ul&gt;&lt;li&gt;Code up the barebones template in this diagram. Focus on being able to make all windows appear/disappear in the sequence described below.&amp;nbsp;&lt;/li&gt;&lt;li&gt;Then pass the relevant data to/from the windows when they open/close. This data will probably be sections of the YAML files.&amp;nbsp;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
           <mxGeometry x="900" y="-700" width="440" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="S-Zx8-YwdgRQVwYKoTbn-63" value="createNewLangWindow" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" vertex="1" parent="1">
+          <mxGeometry x="530" y="540" width="60" height="30" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
