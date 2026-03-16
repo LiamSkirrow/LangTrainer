@@ -101,6 +101,13 @@ void MainWindow::receive_new_lang(const QString &lang)
 
 void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
 {
-    qInfo("User selected lang: %s", item->text().toStdString().c_str());
+    std::string lang_name = item->text().toStdString();
+    qInfo("User selected lang: %s", lang_name.c_str());
+
+    // ui->langDetailTree->
+
+    // TODO: tree
+    // - watch this vid with part 2 as well: https://www.youtube.com/watch?v=TpkiVlOS3o4
+    // - give collapse all button and retract all button
 }
 
