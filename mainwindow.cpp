@@ -1,6 +1,10 @@
 #include "mainwindow.h"
 #include "addlangwindow.h"
 #include "./ui_mainwindow.h"
+#include <QApplication>
+#include <QStandardItem>
+#include <QStandardItemModel>
+#include <QTreeView>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -54,44 +58,6 @@ void MainWindow::on_addLangButton_clicked()
     addlangwin->setModal(true);
     addlangwin->exec();
 
-    // YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-
-    // if (lang_spec["specs"]["Spanish"]) {
-    //     qInfo("Spanish detected!");
-    // }
-    // else{
-    //     qInfo("Spanish not detected!");
-    // }
-
-    // const YAML::Node num_genders = lang_spec["specs"]["Spanish"]["numGenders"];
-    // switch (num_genders.Type()) {
-    // case YAML::NodeType::Null: qInfo("num_genders is a Null type"); break;
-    // case YAML::NodeType::Scalar: qInfo("num_genders is a Scalar type"); break;
-    // case YAML::NodeType::Sequence: qInfo("num_genders is a Sequence type"); break;
-    // case YAML::NodeType::Map: qInfo("num_genders is a Map type"); break;
-    // case YAML::NodeType::Undefined: qInfo("num_genders is a Undefined type"); break;
-    // }
-    // qInfo("numGenders: %d", num_genders.as<int>());
-
-    // const YAML::Node gender_list = lang_spec["specs"]["Spanish"]["genders"];
-    // switch (gender_list.Type()) {
-    // case YAML::NodeType::Null: qInfo("gender_list is a Null type"); break;
-    // case YAML::NodeType::Scalar: qInfo("gender_list is a Scalar type"); break;
-    // case YAML::NodeType::Sequence: qInfo("gender_list is a Sequence type"); break;
-    // case YAML::NodeType::Map: qInfo("gender_list is a Map type"); break;
-    // case YAML::NodeType::Undefined: qInfo("gender_list is a Undefined type"); break;
-    // }
-    // std::list<std::string> gender_vec = gender_list.as<std::list<std::string>>();
-
-    // for(std::string str : gender_vec){
-    //     qInfo("numGenders: %s", str.c_str());
-    // }
-
-    // qInfo("genders: %d", gender_list.as<int>());
-
-    // std::ofstream fout("config.yaml");
-    // fout << config;
-
 }
 
 void MainWindow::receive_new_lang(const QString &lang)
@@ -101,13 +67,41 @@ void MainWindow::receive_new_lang(const QString &lang)
 
 void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
 {
-    std::string lang_name = item->text().toStdString();
-    qInfo("User selected lang: %s", lang_name.c_str());
+    std::string selected_lang_name = item->text().toStdString();
+    qInfo("User selected lang: %s", selected_lang_name.c_str());
 
-    // ui->langDetailTree->
+    // lookup the selected language and grab the vocab from the lang_database
+    YAML::Node selected_lang_handle = lang_database[selected_lang_name];
+
+    // add vocab relevant to selected language to the ui elem langDetailTree
+    // using model based approach rather than item based
+
+    auto *model = new QStandardItemModel();
+    model->setHorizontalHeaderLabels({"Vocab"});
+
+    auto *verbs_item = new QStandardItem("Verbs");
+
+    for(auto verb : selected_lang_handle["verbs"]){
+        verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
+        qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
+        // TODO: UP TO HERE !!!
+        // - populate this area with all modified verb forms for each verb infinitive
+        // - each verb infinitive should itself be a tree that is *not* expanded by default!
+    }
+
+    model->appendRow(verbs_item);
+
+    auto *networkName = new QStandardItem("Network");
+    // auto *networkValue = new QStandardItem("");
+    networkName->appendRow(new QStandardItem("Host"));
+    networkName->appendRow(new QStandardItem("Port"));
+    model->appendRow(networkName);
+
+    // QTreeView view;
+    ui->langDetailTree->setModel(model);
+    ui->langDetailTree->expandAll();
 
     // TODO: tree
-    // - watch this vid with part 2 as well: https://www.youtube.com/watch?v=TpkiVlOS3o4
     // - give collapse all button and retract all button
 }
 
