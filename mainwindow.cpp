@@ -85,22 +85,34 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     model->setHorizontalHeaderLabels({"Vocab"});
 
     auto *verbs_item = new QStandardItem("Verbs");
+    auto *nouns_item = new QStandardItem("Nouns");
+    auto *adjs_item  = new QStandardItem("Adjectives");
+    auto *preps_item = new QStandardItem("Prepositions");
 
     for(auto verb : selected_lang_handle["verbs"]){
         verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
         qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
-        // TODO: UP TO HERE !!!
-        // - populate this area with all modified verb forms for each verb infinitive
-        // - each verb infinitive should itself be a tree that is *not* expanded by default!
+    }
+
+    for(auto noun : selected_lang_handle["nouns"]){ // TODO: the language.yaml has nouns-m/f
+        nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
+        qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
+    }
+
+    for(auto adj : selected_lang_handle["adjs"]){
+        adjs_item->appendRow(new QStandardItem(adj.as<std::string>().c_str()));
+        qInfo("User selected lang has adj: %s", adj.as<std::string>().c_str());
+    }
+
+    for(auto prep : selected_lang_handle["preps"]){
+        preps_item->appendRow(new QStandardItem(prep.as<std::string>().c_str()));
+        qInfo("User selected lang has prep: %s", prep.as<std::string>().c_str());
     }
 
     model->appendRow(verbs_item);
-
-    auto *networkName = new QStandardItem("Network");
-    // auto *networkValue = new QStandardItem("");
-    networkName->appendRow(new QStandardItem("Host"));
-    networkName->appendRow(new QStandardItem("Port"));
-    model->appendRow(networkName);
+    model->appendRow(nouns_item);
+    model->appendRow(adjs_item);
+    model->appendRow(preps_item);
 
     // QTreeView view;
     ui->langDetailTree->setModel(model);
