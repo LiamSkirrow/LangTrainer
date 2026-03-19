@@ -13,12 +13,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // read in the language spec YAML and populate the list of available languages
-    // MacOs/Linux
-    YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
-    YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
+    // MacOS/Linux
+    // YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
+    // YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
     // Windows
-    // YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    // YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+    YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
+    YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
 
     supported_langs = lang_spec["specs"];
     lang_database = lang_db["languages"];
@@ -82,19 +82,26 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     // using model based approach rather than item based
 
     auto *model = new QStandardItemModel();
-    model->setHorizontalHeaderLabels({"Vocab"});
+    model->setHorizontalHeaderLabels({"Vocab", "Details"});
 
     auto *verbs_item = new QStandardItem("Verbs");
     auto *nouns_item = new QStandardItem("Nouns");
     auto *adjs_item  = new QStandardItem("Adjectives");
     auto *preps_item = new QStandardItem("Prepositions");
 
+    // TODO: UP TO HERE !!!
+    // need to use a selection model???
+    // bind each new QStandardItem to a signal, and connect to slot that enters the details in the 'Details' section of the UI window header
+    // look here for some keywords:
+    // https://forum.qt.io/topic/5246/solved-how-to-detect-when-the-selection-changes-in-a-qtreeview/6
+
     for(auto verb : selected_lang_handle["verbs"]){
         verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
         qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
     }
 
-    for(auto noun : selected_lang_handle["nouns"]){ // TODO: the language.yaml has nouns-m/f
+    // TODO: refactor language.yaml to store nouns: {madre: f, padre: m}
+    for(auto noun : selected_lang_handle["nouns"]){
         nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
         qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
     }
