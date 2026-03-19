@@ -13,8 +13,13 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // read in the language spec YAML and populate the list of available languages
-    YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+    // MacOs/Linux
+    YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
+    YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
+    // Windows
+    // YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
+    // YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+
     supported_langs = lang_spec["specs"];
     lang_database = lang_db["languages"];
 
