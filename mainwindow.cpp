@@ -48,8 +48,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->langList->addItem(child.first.as<std::string>().c_str());
     }
 
-    // ui->langList->
-
 }
 
 MainWindow::~MainWindow()
@@ -89,6 +87,8 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     auto *adjs_item  = new QStandardItem("Adjectives");
     auto *preps_item = new QStandardItem("Prepositions");
 
+    // verbs_item->text()
+
     // TODO: UP TO HERE !!!
     // need to use a selection model???
     // bind each new QStandardItem to a signal, and connect to slot that enters the details in the 'Details' section of the UI window header
@@ -125,7 +125,16 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     ui->langDetailTree->setModel(model);
     ui->langDetailTree->expandAll();
 
+    QItemSelectionModel *langDetailTreeSelModel = ui->langDetailTree->selectionModel();
+    connect(langDetailTreeSelModel,
+            SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
+            this,
+            SLOT(testSlot(const QModelIndex &, const QModelIndex &)));
+
     // TODO: tree
     // - give collapse all button and retract all button
 }
 
+void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
+    qInfo("TEST SLOT TRIGGERED");
+}

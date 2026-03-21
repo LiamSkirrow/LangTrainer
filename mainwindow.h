@@ -23,6 +23,7 @@ public:
 public slots:
     void on_addLangButton_clicked();
     void receive_new_lang(const QString &lang);
+    void testSlot(const QModelIndex &, const QModelIndex &);
 
 private slots:
     void on_langList_itemClicked(QListWidgetItem *item);
