@@ -14,3 +14,5 @@ Sentence training involves being presented a sentence (adhering to a randomly se
 As well as a standalone verb conjugation mode, there should also be a standalone noun declension mode. 
 
 A TTS mode that is an endless loop of the kind of instructions you get when doing a Pimsleur lesson, eg: "frag, dass du hunger hast" -> *pause for a few secs* -> "ich habe hunger" and then just endlessly repeat this over and over so the user learns to respond to commands in the target language.
+
+A final-stage feature would include statistics for training sessions, to gain an insight into how you've progressed over time. For each training session, log stats of how frequently given verbs, nouns, sentences are answered correctly/incorrectly. Gather these stats and aggregate them for each word/sentence structure so that over time a clear trend can be seen, as to how frequently they're answered correctly/incorrectly. Also can lump different word/sentence structures into different buckets depending on what the correct/incorrect rate looks like -> 'New', 'Learning', 'Learned'.
