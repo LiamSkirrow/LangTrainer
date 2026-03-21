@@ -1,3 +1,16 @@
 # LangTrainer
 
 Development in progress...
+
+### Dev Ideas
+- the 'language browser' that shows the available vocab for a given language is now integrated into the main window. Selecting a language makes its loaded vocab appear in a QTreeView, and clicking on an individual word in that tree view makes the 'details' of that word pop up in the Details column of the QTreeView. This avoids having to click an extra button only to open up an extra window to go searching for the vocab currently loaded in a given language.
+- from the perspective of the main window, clicking the 'add vocab' or 'open language editor' button (TBD), should pop up a new window that shows all the vocab classes for that specific language, and allows the modification of:
+  - existing vocab, including all the modified forms of the vocab (verb conjugations etc)
+  - sentence structure, to generate sentence examples. Present the sentence template that is filled in with randomly selected vocab, and include a 'generate example sentence' button that prints out a randomly generated sentence somewhere to the screen to give an example of what this sentence template is capable of. These example randomly generated sentences should draw on the vocab currently loaded for the language so it would show a literal example of what would come up when drilling sentences like this.
+- regarding sentence structure, I want this stage to be super flexible for the user. Basically, I want the user to be able to enter in whatever grammar structure they like, and for it to be as flexible and programmatic as possible. This will likely involve constructing some kind of custom grammar so that the user can easily define a sentence structure that LangTrainer will adhere to when presenting sentences. Something like: `[1st person singular pronoun][pro-drop=yes] [verb] [preposition][optional=yes] [noun][article=definite or indefinite]`, and LangTrainer will generate sentences that adhere to this structure. 
+
+Sentence training involves being presented a sentence (adhering to a randomly selected custom grammar structure) in either English or the target language, and then typing in the translation (to target language or English, respectively). This could be auto-checked word for word, or we could just let the user select whether they got it right or wrong, which is probably the preferred option since sometimes translations aren't 1:1 and there may be various many correct versions of a translation. Basically, sentence training will check the user's verb conjugation, noun declension and sentence structure ability all wrapped into one exercise. 
+
+As well as a standalone verb conjugation mode, there should also be a standalone noun declension mode. 
+
+A TTS mode that is an endless loop of the kind of instructions you get when doing a Pimsleur lesson, eg: "frag, dass du hunger hast" -> *pause for a few secs* -> "ich habe hunger" and then just endlessly repeat this over and over so the user learns to respond to commands in the target language.
