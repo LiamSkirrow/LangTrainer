@@ -1,13 +1,13 @@
 languages:
   Spanish:
-    adjs: []
-    nouns-f: []
-    nouns-m: []
-    preps: []
-    verbs: [hablar, comer]
-    verbs-en-inf: {comer: eat, hablar: speak}
-    verbs-en-simple-past: {comer: ate, hablar: spoke}
-    verbs-present-1ppl: {comer: comemos, hablar: hablamos}
-    verbs-present-1psing: {comer: como, hablar: hablo}
-    verbs-present_cont-1ppl: {comer: estamos comiendo, hablar: estamos hablando}
-    verbs-present_cont-1psing: {comer: estoy comiendo, hablar: estoy hablando}
+    Adjectives: []
+    Nouns: [madre, padre]
+    Nouns-gender: {madre: f, padre: m}
+    Prepositions: []
+    Verbs: [hablar, comer]
+    Verbs-en-inf: {comer: eat, hablar: speak}
+    Verbs-en-simple-past: {comer: ate, hablar: spoke}
+    Verbs-present-1ppl: {comer: comemos, hablar: hablamos}
+    Verbs-present-1psing: {comer: como, hablar: hablo}
+    Verbs-present_cont-1ppl: {comer: estamos comiendo, hablar: estamos hablando}
+    Verbs-present_cont-1psing: {comer: estoy comiendo, hablar: estoy hablando}

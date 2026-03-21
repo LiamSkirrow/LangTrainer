@@ -87,31 +87,23 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     auto *adjs_item  = new QStandardItem("Adjectives");
     auto *preps_item = new QStandardItem("Prepositions");
 
-    qInfo("Verbs QStandardItem text is: " + verbs_item->text().toLatin1());
-
-    // TODO: UP TO HERE !!!
-    // need to use a selection model???
-    // bind each new QStandardItem to a signal, and connect to slot that enters the details in the 'Details' section of the UI window header
-    // look here for some keywords:
-    // https://forum.qt.io/topic/5246/solved-how-to-detect-when-the-selection-changes-in-a-qtreeview/6
-
-    for(auto verb : selected_lang_handle["verbs"]){
+    for(auto verb : selected_lang_handle["Verbs"]){
         verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
         qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
     }
 
     // TODO: refactor language.yaml to store nouns: {madre: f, padre: m}
-    for(auto noun : selected_lang_handle["nouns"]){
+    for(auto noun : selected_lang_handle["Nouns"]){
         nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
         qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
     }
 
-    for(auto adj : selected_lang_handle["adjs"]){
+    for(auto adj : selected_lang_handle["Adjectives"]){
         adjs_item->appendRow(new QStandardItem(adj.as<std::string>().c_str()));
         qInfo("User selected lang has adj: %s", adj.as<std::string>().c_str());
     }
 
-    for(auto prep : selected_lang_handle["preps"]){
+    for(auto prep : selected_lang_handle["Prepositions"]){
         preps_item->appendRow(new QStandardItem(prep.as<std::string>().c_str()));
         qInfo("User selected lang has prep: %s", prep.as<std::string>().c_str());
     }
