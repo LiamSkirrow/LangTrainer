@@ -87,7 +87,7 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     auto *adjs_item  = new QStandardItem("Adjectives");
     auto *preps_item = new QStandardItem("Prepositions");
 
-    // verbs_item->text()
+    qInfo("Verbs QStandardItem text is: " + verbs_item->text().toLatin1());
 
     // TODO: UP TO HERE !!!
     // need to use a selection model???
@@ -136,5 +136,14 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
 }
 
 void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
-    qInfo("TEST SLOT TRIGGERED");
+    auto parent = curr.parent();
+    bool parentPresent = true;
+    if(parent == QModelIndex()){
+        parentPresent = false;
+    }
+    qInfo("TEST SLOT TRIGGERED: %d %d %d", parentPresent, curr.row(), curr.column());
+    qInfo("   Selected word: " + ui->langDetailTree->model()->data(curr).toString().toLatin1());
+    if(parentPresent){
+        qInfo("   belongs to word class: " + ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1());
+    }
 }
