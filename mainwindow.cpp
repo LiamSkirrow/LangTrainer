@@ -5,6 +5,7 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
+// #include <string>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -133,6 +134,8 @@ void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
     // const char *vocab =
     bool parentPresent = true;
     YAML::Node vocab_sample;
+    std::stringstream vocab_str;
+
     if(parent == QModelIndex()){
         parentPresent = false;
     }
@@ -142,50 +145,32 @@ void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
         qInfo("   belongs to word class: " + ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1());
     }
 
-    const char* vocab_str = ui->langDetailTree->model()->data(curr.parent()).toString().toStdString().c_str();
+    // we have to perform the YAML Map lookup with std::string as index
+    vocab_str << ui->langDetailTree->model()->data(curr).toString().toLatin1().data();
+    std::string vocab_std_str = vocab_str.str();
 
+    // clear the output display
+    ui->vocabInfoOutput->setText("");
 
     //  determine what kind of vocab is currently selected
     if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Verbs"){
-        ui->vocabInfoOutput->setText("");
+        // fetch the conjugated versions of the selected vocab
+        // ... create a std::list of 'Verbs-en-inf' etc and iterate over it, looking up the required vocab each time
         ui->vocabInfoOutput->append("Verb selected");
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
-        ui->vocabInfoOutput->setText("");
-        // vocab_sample = selected_lang_handle["Nouns"][ui->langDetailTree->model()->data(curr).toString()];
-
-        qInfo("%s", typeid(ui->langDetailTree->model()->data(curr).toString()).name());
-
-        vocab_sample = selected_lang_handle["Nouns-gender"]["madre"];
-
-        switch (vocab_sample.Type()) {
-        case YAML::NodeType::Null: qInfo("vocab_sample is a Null type"); break;
-        case YAML::NodeType::Scalar: qInfo("vocab_sample is a Scalar type"); break;
-        case YAML::NodeType::Sequence: qInfo("vocab_sample is a Sequence type"); break;
-        case YAML::NodeType::Map: qInfo("vocab_sample is a Map type"); break;
-        case YAML::NodeType::Undefined: qInfo("vocab_sample is a Undefined type"); break;
-        }
-        qInfo("size: %zu", vocab_sample.size());
-
-        // ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
-
+        // fetch the noun genders
+        vocab_sample = selected_lang_handle["Nouns-gender"][vocab_std_str];
+        ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Adjectives"){
-        ui->vocabInfoOutput->setText("");
-        ui->vocabInfoOutput->append("Adjective selected");
+        ui->vocabInfoOutput->append("No extra info to display");
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Prepositions"){
-        ui->vocabInfoOutput->setText("");
-        ui->vocabInfoOutput->append("Preposition selected");
+        ui->vocabInfoOutput->append("No extra info to display");
     }
     else{
-        ui->vocabInfoOutput->setText("");
+        // do nothing, a parent must've been selected -> no action
     }
 
-    // fetch the conjugated versions of the selected vocab
-
-    // populate the vocab details output area
-    // ui->vocabInfoOutput->setText("");
-    // ui->vocabInfoOutput->append("test0");
-    // ui->vocabInfoOutput->append("test1");
 }
