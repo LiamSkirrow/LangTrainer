@@ -3,7 +3,7 @@ languages:
     Adjectives: []
     Nouns: [madre, padre]
     Nouns-gender: {madre: f, padre: m}
-    Prepositions: []
+    Prepositions: [en, para]
     Verbs: [hablar, comer]
     Verbs-en-inf: {comer: eat, hablar: speak}
     Verbs-en-simple-past: {comer: ate, hablar: spoke}

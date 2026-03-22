@@ -48,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
         ui->langList->addItem(child.first.as<std::string>().c_str());
     }
 
+    ui->vocabInfoOutput->setReadOnly(true);
+
 }
 
 MainWindow::~MainWindow()
@@ -74,13 +76,13 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     qInfo("User selected lang: %s", selected_lang_name.c_str());
 
     // lookup the selected language and grab the vocab from the lang_database
-    YAML::Node selected_lang_handle = lang_database[selected_lang_name];
+    selected_lang_handle = lang_database[selected_lang_name];
 
     // add vocab relevant to selected language to the ui elem langDetailTree
     // using model based approach rather than item based
 
     auto *model = new QStandardItemModel();
-    model->setHorizontalHeaderLabels({"Vocab", "Details"});
+    model->setHorizontalHeaderLabels({"Vocab"});
 
     auto *verbs_item = new QStandardItem("Verbs");
     auto *nouns_item = new QStandardItem("Nouns");
@@ -92,7 +94,6 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
         qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
     }
 
-    // TODO: refactor language.yaml to store nouns: {madre: f, padre: m}
     for(auto noun : selected_lang_handle["Nouns"]){
         nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
         qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
@@ -129,7 +130,9 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
 
 void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
     auto parent = curr.parent();
+    // const char *vocab =
     bool parentPresent = true;
+    YAML::Node vocab_sample;
     if(parent == QModelIndex()){
         parentPresent = false;
     }
@@ -138,4 +141,51 @@ void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
     if(parentPresent){
         qInfo("   belongs to word class: " + ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1());
     }
+
+    const char* vocab_str = ui->langDetailTree->model()->data(curr.parent()).toString().toStdString().c_str();
+
+
+    //  determine what kind of vocab is currently selected
+    if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Verbs"){
+        ui->vocabInfoOutput->setText("");
+        ui->vocabInfoOutput->append("Verb selected");
+    }
+    else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
+        ui->vocabInfoOutput->setText("");
+        // vocab_sample = selected_lang_handle["Nouns"][ui->langDetailTree->model()->data(curr).toString()];
+
+        qInfo("%s", typeid(ui->langDetailTree->model()->data(curr).toString()).name());
+
+        vocab_sample = selected_lang_handle["Nouns-gender"]["madre"];
+
+        switch (vocab_sample.Type()) {
+        case YAML::NodeType::Null: qInfo("vocab_sample is a Null type"); break;
+        case YAML::NodeType::Scalar: qInfo("vocab_sample is a Scalar type"); break;
+        case YAML::NodeType::Sequence: qInfo("vocab_sample is a Sequence type"); break;
+        case YAML::NodeType::Map: qInfo("vocab_sample is a Map type"); break;
+        case YAML::NodeType::Undefined: qInfo("vocab_sample is a Undefined type"); break;
+        }
+        qInfo("size: %zu", vocab_sample.size());
+
+        // ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
+
+    }
+    else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Adjectives"){
+        ui->vocabInfoOutput->setText("");
+        ui->vocabInfoOutput->append("Adjective selected");
+    }
+    else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Prepositions"){
+        ui->vocabInfoOutput->setText("");
+        ui->vocabInfoOutput->append("Preposition selected");
+    }
+    else{
+        ui->vocabInfoOutput->setText("");
+    }
+
+    // fetch the conjugated versions of the selected vocab
+
+    // populate the vocab details output area
+    // ui->vocabInfoOutput->setText("");
+    // ui->vocabInfoOutput->append("test0");
+    // ui->vocabInfoOutput->append("test1");
 }

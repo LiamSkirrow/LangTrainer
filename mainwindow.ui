@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>750</width>
-    <height>547</height>
+    <width>765</width>
+    <height>548</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -36,6 +36,9 @@
     <item>
      <widget class="QTreeView" name="langDetailTree"/>
     </item>
+    <item>
+     <widget class="QTextEdit" name="vocabInfoOutput"/>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -43,7 +46,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>750</width>
+     <width>765</width>
      <height>21</height>
     </rect>
    </property>
