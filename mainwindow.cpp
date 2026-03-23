@@ -2,10 +2,42 @@
 #include "addlangwindow.h"
 #include "./ui_mainwindow.h"
 #include <QApplication>
+#include <QItemSelectionModel>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
 // #include <string>
+
+namespace {
+
+void resetLanguageView(Ui::MainWindow *ui)
+{
+    if (QAbstractItemModel *existingModel = ui->langDetailTree->model()) {
+        ui->langDetailTree->setModel(nullptr);
+        delete existingModel;
+    }
+
+    ui->vocabInfoOutput->clear();
+}
+
+bool appendWordClass(QStandardItemModel *model,
+                     const QString &label,
+                     const YAML::Node &words)
+{
+    if (!words || !words.IsSequence() || words.size() == 0) {
+        return false;
+    }
+
+    auto *categoryItem = new QStandardItem(label);
+    for (const auto &word : words) {
+        categoryItem->appendRow(new QStandardItem(word.as<std::string>().c_str()));
+    }
+
+    model->appendRow(categoryItem);
+    return true;
+}
+
+} // namespace
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -15,11 +47,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     // read in the language spec YAML and populate the list of available languages
     // MacOS/Linux
-    // YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
-    // YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
+    YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
+    YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
     // Windows
-    YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+    // YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
+    // YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
 
     supported_langs = lang_spec["specs"];
     lang_database = lang_db["languages"];
@@ -76,54 +108,62 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     std::string selected_lang_name = item->text().toStdString();
     qInfo("User selected lang: %s", selected_lang_name.c_str());
 
+    resetLanguageView(ui);
+    selected_lang_handle = YAML::Node();
+
     // lookup the selected language and grab the vocab from the lang_database
-    selected_lang_handle = lang_database[selected_lang_name];
+    const YAML::Node languageDatabase = lang_database;
+    const YAML::Node selectedLanguage = languageDatabase[selected_lang_name];
+    if (!selectedLanguage || !selectedLanguage.IsMap()) {
+        ui->vocabInfoOutput->setText(
+            QString("No vocabulary is loaded for %1 yet.").arg(item->text()));
+        return;
+    }
+
+    selected_lang_handle = selectedLanguage;
 
     // add vocab relevant to selected language to the ui elem langDetailTree
     // using model based approach rather than item based
 
-    auto *model = new QStandardItemModel();
+    auto *model = new QStandardItemModel(ui->langDetailTree);
     model->setHorizontalHeaderLabels({"Vocab"});
 
-    auto *verbs_item = new QStandardItem("Verbs");
-    auto *nouns_item = new QStandardItem("Nouns");
-    auto *adjs_item  = new QStandardItem("Adjectives");
-    auto *preps_item = new QStandardItem("Prepositions");
+    bool hasVocabulary = false;
 
-    for(auto verb : selected_lang_handle["Verbs"]){
-        verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
-        qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
+    if (appendWordClass(model, "Verbs", selected_lang_handle["Verbs"])) {
+        hasVocabulary = true;
     }
 
-    for(auto noun : selected_lang_handle["Nouns"]){
-        nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
-        qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
+    if (appendWordClass(model, "Nouns", selected_lang_handle["Nouns"])) {
+        hasVocabulary = true;
     }
 
-    for(auto adj : selected_lang_handle["Adjectives"]){
-        adjs_item->appendRow(new QStandardItem(adj.as<std::string>().c_str()));
-        qInfo("User selected lang has adj: %s", adj.as<std::string>().c_str());
+    if (appendWordClass(model, "Adjectives", selected_lang_handle["Adjectives"])) {
+        hasVocabulary = true;
     }
 
-    for(auto prep : selected_lang_handle["Prepositions"]){
-        preps_item->appendRow(new QStandardItem(prep.as<std::string>().c_str()));
-        qInfo("User selected lang has prep: %s", prep.as<std::string>().c_str());
+    if (appendWordClass(model, "Prepositions", selected_lang_handle["Prepositions"])) {
+        hasVocabulary = true;
     }
 
-    model->appendRow(verbs_item);
-    model->appendRow(nouns_item);
-    model->appendRow(adjs_item);
-    model->appendRow(preps_item);
+    if (!hasVocabulary) {
+        delete model;
+        selected_lang_handle = YAML::Node();
+        ui->vocabInfoOutput->setText(
+            QString("No vocabulary entries are available for %1 yet.").arg(item->text()));
+        return;
+    }
 
     // QTreeView view;
     ui->langDetailTree->setModel(model);
     ui->langDetailTree->expandAll();
 
-    QItemSelectionModel *langDetailTreeSelModel = ui->langDetailTree->selectionModel();
-    connect(langDetailTreeSelModel,
-            SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
-            this,
-            SLOT(testSlot(const QModelIndex &, const QModelIndex &)));
+    if (QItemSelectionModel *langDetailTreeSelModel = ui->langDetailTree->selectionModel()) {
+        connect(langDetailTreeSelModel,
+                &QItemSelectionModel::currentChanged,
+                this,
+                &MainWindow::testSlot);
+    }
 
     // TODO: tree
     // - give collapse all button and retract all button
