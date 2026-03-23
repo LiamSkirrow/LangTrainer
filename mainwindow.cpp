@@ -2,13 +2,32 @@
 #include "addlangwindow.h"
 #include "./ui_mainwindow.h"
 #include <QApplication>
-#include <QItemSelectionModel>
+#include <QDir>
+#include <QFileInfo>
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
 // #include <string>
 
 namespace {
+
+QString resolveProjectFilePath(const QString &fileName)
+{
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    const QStringList candidates = {
+        appDir.filePath("../../../../../" + fileName),
+        appDir.filePath("../../" + fileName),
+        QDir::current().filePath(fileName)
+    };
+
+    for (const QString &candidate : candidates) {
+        if (QFileInfo::exists(candidate)) {
+            return QFileInfo(candidate).absoluteFilePath();
+        }
+    }
+
+    return {};
+}
 
 void resetLanguageView(Ui::MainWindow *ui)
 {
@@ -18,6 +37,22 @@ void resetLanguageView(Ui::MainWindow *ui)
     }
 
     ui->vocabInfoOutput->clear();
+}
+
+YAML::Node loadLanguageData(const QString &databasePath, const std::string &languageName)
+{
+    if (databasePath.isEmpty()) {
+        return {};
+    }
+
+    const YAML::Node databaseRoot = YAML::LoadFile(databasePath.toStdString());
+    const YAML::Node languages = databaseRoot["languages"];
+
+    if (!languages || !languages.IsMap()) {
+        return {};
+    }
+
+    return languages[languageName];
 }
 
 bool appendWordClass(QStandardItemModel *model,
@@ -47,14 +82,10 @@ MainWindow::MainWindow(QWidget *parent)
 
     // read in the language spec YAML and populate the list of available languages
     // MacOS/Linux
-    YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
-    YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
-    // Windows
-    // YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    // YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
-
+    const QString specPath = resolveProjectFilePath("spec.yaml");
+    language_db_path = resolveProjectFilePath("language.yaml");
+    const YAML::Node lang_spec = YAML::LoadFile(specPath.toStdString());
     supported_langs = lang_spec["specs"];
-    lang_database = lang_db["languages"];
 
     // iterate over the supported langs and add to the list
     switch (supported_langs.Type()) {
@@ -65,15 +96,6 @@ MainWindow::MainWindow(QWidget *parent)
     case YAML::NodeType::Undefined: qInfo("supported_langs is a Undefined type"); break;
     }
     qInfo("size: %zu", supported_langs.size());
-
-    switch (lang_database.Type()) {
-    case YAML::NodeType::Null: qInfo("lang_database is a Null type"); break;
-    case YAML::NodeType::Scalar: qInfo("lang_database is a Scalar type"); break;
-    case YAML::NodeType::Sequence: qInfo("lang_database is a Sequence type"); break;
-    case YAML::NodeType::Map: qInfo("lang_database is a Map type"); break;
-    case YAML::NodeType::Undefined: qInfo("lang_database is a Undefined type"); break;
-    }
-    qInfo("size: %zu", lang_database.size());
 
     // With for-range loop
     for (auto child : supported_langs) {
@@ -109,18 +131,15 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     qInfo("User selected lang: %s", selected_lang_name.c_str());
 
     resetLanguageView(ui);
-    selected_lang_handle = YAML::Node();
+    current_language_name = selected_lang_name;
 
-    // lookup the selected language and grab the vocab from the lang_database
-    const YAML::Node languageDatabase = lang_database;
-    const YAML::Node selectedLanguage = languageDatabase[selected_lang_name];
+    // lookup the selected language and grab the vocab from the language database file
+    const YAML::Node selectedLanguage = loadLanguageData(language_db_path, selected_lang_name);
     if (!selectedLanguage || !selectedLanguage.IsMap()) {
         ui->vocabInfoOutput->setText(
             QString("No vocabulary is loaded for %1 yet.").arg(item->text()));
         return;
     }
-
-    selected_lang_handle = selectedLanguage;
 
     // add vocab relevant to selected language to the ui elem langDetailTree
     // using model based approach rather than item based
@@ -130,25 +149,24 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
 
     bool hasVocabulary = false;
 
-    if (appendWordClass(model, "Verbs", selected_lang_handle["Verbs"])) {
+    if (appendWordClass(model, "Verbs", selectedLanguage["Verbs"])) {
         hasVocabulary = true;
     }
 
-    if (appendWordClass(model, "Nouns", selected_lang_handle["Nouns"])) {
+    if (appendWordClass(model, "Nouns", selectedLanguage["Nouns"])) {
         hasVocabulary = true;
     }
 
-    if (appendWordClass(model, "Adjectives", selected_lang_handle["Adjectives"])) {
+    if (appendWordClass(model, "Adjectives", selectedLanguage["Adjectives"])) {
         hasVocabulary = true;
     }
 
-    if (appendWordClass(model, "Prepositions", selected_lang_handle["Prepositions"])) {
+    if (appendWordClass(model, "Prepositions", selectedLanguage["Prepositions"])) {
         hasVocabulary = true;
     }
 
     if (!hasVocabulary) {
         delete model;
-        selected_lang_handle = YAML::Node();
         ui->vocabInfoOutput->setText(
             QString("No vocabulary entries are available for %1 yet.").arg(item->text()));
         return;
@@ -158,32 +176,35 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     ui->langDetailTree->setModel(model);
     ui->langDetailTree->expandAll();
 
-    if (QItemSelectionModel *langDetailTreeSelModel = ui->langDetailTree->selectionModel()) {
-        connect(langDetailTreeSelModel,
-                &QItemSelectionModel::currentChanged,
-                this,
-                &MainWindow::testSlot);
-    }
-
     // TODO: tree
     // - give collapse all button and retract all button
 }
 
-void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
+void MainWindow::on_langDetailTree_clicked(const QModelIndex &curr)
+{
+    if (!curr.isValid() || !ui->langDetailTree->model()) {
+        return;
+    }
+
     auto parent = curr.parent();
-    // const char *vocab =
-    bool parentPresent = true;
+    if (!parent.isValid()) {
+        ui->vocabInfoOutput->setText("");
+        return;
+    }
+
+    const YAML::Node selectedLanguage = loadLanguageData(language_db_path, current_language_name);
+    if (!selectedLanguage || !selectedLanguage.IsMap()) {
+        ui->vocabInfoOutput->setText("No vocabulary is loaded for the selected language.");
+        return;
+    }
+
     YAML::Node vocab_sample;
     std::stringstream vocab_str;
 
-    if(parent == QModelIndex()){
-        parentPresent = false;
-    }
-    qInfo("TEST SLOT TRIGGERED: %d %d %d", parentPresent, curr.row(), curr.column());
-    qInfo("   Selected word: " + ui->langDetailTree->model()->data(curr).toString().toLatin1());
-    if(parentPresent){
-        qInfo("   belongs to word class: " + ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1());
-    }
+    qInfo("TEST SLOT TRIGGERED: %d %d", curr.row(), curr.column());
+    qInfo("%s", ("   Selected word: " + ui->langDetailTree->model()->data(curr).toString()).toUtf8().constData());
+    qInfo("%s", ("   belongs to word class: "
+                 + ui->langDetailTree->model()->data(curr.parent()).toString()).toUtf8().constData());
 
     // we have to perform the YAML Map lookup with std::string as index
     vocab_str << ui->langDetailTree->model()->data(curr).toString().toLatin1().data();
@@ -200,8 +221,12 @@ void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
         // fetch the noun genders
-        vocab_sample = selected_lang_handle["Nouns-gender"][vocab_std_str];
-        ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
+        vocab_sample = selectedLanguage["Nouns-gender"][vocab_std_str];
+        if (vocab_sample && vocab_sample.IsScalar()) {
+            ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
+        } else {
+            ui->vocabInfoOutput->append("No noun details available");
+        }
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Adjectives"){
         ui->vocabInfoOutput->append("No extra info to display");
