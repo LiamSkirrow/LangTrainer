@@ -11,3 +11,7 @@ languages:
     Verbs-present-1psing: {comer: como, hablar: hablo}
     Verbs-present_cont-1ppl: {comer: estamos comiendo, hablar: estamos hablando}
     Verbs-present_cont-1psing: {comer: estoy comiendo, hablar: estoy hablando}
+  German:
+  Russian:
+  Polish:
+  French:

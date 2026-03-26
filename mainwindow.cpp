@@ -21,6 +21,11 @@ MainWindow::MainWindow(QWidget *parent)
     YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
     YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
 
+    // TODO: this needs to be able to be derived for each language, it should be possible to be derived
+    // from the spec.yaml for each language
+    verb_types = {"Verbs-en-inf", "Verbs-en-simple-past", "Verbs-present-1ppl",
+                  "Verbs-present-1psing", "Verbs-present_cont-1ppl", "Verbs-present_cont-1psing"};
+
     supported_langs = lang_spec["specs"];
     lang_database = lang_db["languages"];
 
@@ -79,6 +84,8 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     // lookup the selected language and grab the vocab from the lang_database
     selected_lang_handle = lang_database[selected_lang_name];
 
+    ui->langDetailTree->reset();
+
     // add vocab relevant to selected language to the ui elem langDetailTree
     // using model based approach rather than item based
 
@@ -123,13 +130,13 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     connect(langDetailTreeSelModel,
             SIGNAL(currentChanged(const QModelIndex &, const QModelIndex &)),
             this,
-            SLOT(testSlot(const QModelIndex &, const QModelIndex &)));
+            SLOT(vocabSelected(const QModelIndex &, const QModelIndex &)));
 
     // TODO: tree
     // - give collapse all button and retract all button
 }
 
-void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
+void MainWindow::vocabSelected(const QModelIndex &curr, const QModelIndex &prev){
     auto parent = curr.parent();
     // const char *vocab =
     bool parentPresent = true;
@@ -155,8 +162,11 @@ void MainWindow::testSlot(const QModelIndex &curr, const QModelIndex &prev){
     //  determine what kind of vocab is currently selected
     if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Verbs"){
         // fetch the conjugated versions of the selected vocab
-        // ... create a std::list of 'Verbs-en-inf' etc and iterate over it, looking up the required vocab each time
-        ui->vocabInfoOutput->append("Verb selected");
+        for(std::string verb_type : verb_types){
+            vocab_sample = selected_lang_handle[verb_type][vocab_std_str];
+            ui->vocabInfoOutput->append(verb_type.c_str());
+            ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
+        }
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
         // fetch the noun genders

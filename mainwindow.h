@@ -23,7 +23,7 @@ public:
 public slots:
     void on_addLangButton_clicked();
     void receive_new_lang(const QString &lang);
-    void testSlot(const QModelIndex &, const QModelIndex &);
+    void vocabSelected(const QModelIndex &, const QModelIndex &);
 
 private slots:
     void on_langList_itemClicked(QListWidgetItem *item);
@@ -33,5 +33,6 @@ private:
     YAML::Node supported_langs;
     YAML::Node lang_database;
     YAML::Node selected_lang_handle;
+    std::list<std::string> verb_types;
 };
 #endif // MAINWINDOW_H
