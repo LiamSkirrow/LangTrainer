@@ -32,7 +32,7 @@ private:
     Ui::MainWindow *ui;
     YAML::Node supported_langs;
     YAML::Node lang_database;
-    YAML::Node selected_lang_handle;
+    YAML::Node selected_language;
     std::list<std::string> verb_types;
 };
 #endif // MAINWINDOW_H

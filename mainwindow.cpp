@@ -29,6 +29,27 @@ QString resolveProjectFilePath(const QString &fileName)
     return {};
 }
 
+void resetLanguageView(Ui::MainWindow *ui)
+{
+    if (QAbstractItemModel *existingModel = ui->langDetailTree->model()) {
+        ui->langDetailTree->setModel(nullptr);
+        delete existingModel;
+    }
+
+    ui->vocabInfoOutput->clear();
+}
+
+YAML::Node loadLanguageData(YAML::Node languages, const std::string &languageName)
+{
+    // const YAML::Node languages = language_db["languages"];
+
+    if (!languages || !languages.IsMap()) {
+        return {};
+    }
+
+    return languages[languageName];
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget *parent)
@@ -102,10 +123,20 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     std::string selected_lang_name = item->text().toStdString();
     qInfo("User selected lang: %s", selected_lang_name.c_str());
 
-    // lookup the selected language and grab the vocab from the lang_database
-    selected_lang_handle = lang_database[selected_lang_name];
+    // TODO: possibly redundant function? Doesn't seem to do much, once complete see if we can't get rid of it!
+    resetLanguageView(ui);
 
-    ui->langDetailTree->reset();
+    // lookup the selected language and grab the vocab from the lang_database
+    // selected_lang_handle = lang_database[selected_lang_name];
+
+    // lookup the selected language and grab the vocab from the language database file
+    const YAML::Node selected_language = loadLanguageData(lang_database, selected_lang_name);
+    if (!selected_language || !selected_language.IsMap()) {
+        ui->vocabInfoOutput->setText(
+            QString("No vocabulary is loaded for %1 yet.").arg(item->text()));
+        return;
+    }
+
 
     // add vocab relevant to selected language to the ui elem langDetailTree
     // using model based approach rather than item based
@@ -118,22 +149,22 @@ void MainWindow::on_langList_itemClicked(QListWidgetItem *item)
     auto *adjs_item  = new QStandardItem("Adjectives");
     auto *preps_item = new QStandardItem("Prepositions");
 
-    for(auto verb : selected_lang_handle["Verbs"]){
+    for(auto verb : selected_language["Verbs"]){
         verbs_item->appendRow(new QStandardItem(verb.as<std::string>().c_str()));
         qInfo("User selected lang has verb: %s", verb.as<std::string>().c_str());
     }
 
-    for(auto noun : selected_lang_handle["Nouns"]){
+    for(auto noun : selected_language["Nouns"]){
         nouns_item->appendRow(new QStandardItem(noun.as<std::string>().c_str()));
         qInfo("User selected lang has noun: %s", noun.as<std::string>().c_str());
     }
 
-    for(auto adj : selected_lang_handle["Adjectives"]){
+    for(auto adj : selected_language["Adjectives"]){
         adjs_item->appendRow(new QStandardItem(adj.as<std::string>().c_str()));
         qInfo("User selected lang has adj: %s", adj.as<std::string>().c_str());
     }
 
-    for(auto prep : selected_lang_handle["Prepositions"]){
+    for(auto prep : selected_language["Prepositions"]){
         preps_item->appendRow(new QStandardItem(prep.as<std::string>().c_str()));
         qInfo("User selected lang has prep: %s", prep.as<std::string>().c_str());
     }
@@ -184,14 +215,14 @@ void MainWindow::vocabSelected(const QModelIndex &curr, const QModelIndex &prev)
     if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Verbs"){
         // fetch the conjugated versions of the selected vocab
         for(std::string verb_type : verb_types){
-            vocab_sample = selected_lang_handle[verb_type][vocab_std_str];
+            vocab_sample = selected_language[verb_type][vocab_std_str];
             ui->vocabInfoOutput->append(verb_type.c_str());
             ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
         }
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
         // fetch the noun genders
-        vocab_sample = selected_lang_handle["Nouns-gender"][vocab_std_str];
+        vocab_sample = selected_language["Nouns-gender"][vocab_std_str];
         ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Adjectives"){
