@@ -46,6 +46,9 @@ YAML::Node loadLanguageData(YAML::Node languages, const std::string &languageNam
     if (!languages || !languages.IsMap()) {
         return {};
     }
+    else{
+        qInfo("Successfully loaded language: %s", languageName.c_str());
+    }
 
     return languages[languageName];
 }
@@ -211,13 +214,43 @@ void MainWindow::vocabSelected(const QModelIndex &curr, const QModelIndex &prev)
     // clear the output display
     ui->vocabInfoOutput->setText("");
 
+    qInfo("SELECTED WORD IN LANG'S VOCAB LIST IS: <%s>", vocab_std_str.c_str());
+
     //  determine what kind of vocab is currently selected
     if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Verbs"){
         // fetch the conjugated versions of the selected vocab
         for(std::string verb_type : verb_types){
-            vocab_sample = selected_language[verb_type][vocab_std_str];
+            // vocab_sample = selected_language[verb_type][vocab_std_str];
+
+            vocab_sample = selected_language[verb_type];
+
+            switch (vocab_sample.Type()) {
+            case YAML::NodeType::Null: qInfo("vocab_sample is a Null type"); break;
+            case YAML::NodeType::Scalar: qInfo("vocab_sample is a Scalar type"); break;
+            case YAML::NodeType::Sequence: qInfo("vocab_sample is a Sequence type"); break;
+            case YAML::NodeType::Map: qInfo("vocab_sample is a Map type"); break;
+            case YAML::NodeType::Undefined: qInfo("vocab_sample is a Undefined type"); break;
+            }
+            qInfo("size: %zu", vocab_sample.size());
+
+            vocab_sample = vocab_sample[vocab_std_str];
+
+            switch (vocab_sample.Type()) {
+            case YAML::NodeType::Null: qInfo("vocab_sample is a Null type"); break;
+            case YAML::NodeType::Scalar: qInfo("vocab_sample is a Scalar type"); break;
+            case YAML::NodeType::Sequence: qInfo("vocab_sample is a Sequence type"); break;
+            case YAML::NodeType::Map: qInfo("vocab_sample is a Map type"); break;
+            case YAML::NodeType::Undefined: qInfo("vocab_sample is a Undefined type"); break;
+            }
+            qInfo("size: %zu", vocab_sample.size());
+
+            qInfo("Doing lookup for params: <%s> & <%s>", verb_type.c_str(), vocab_std_str.c_str());
+
+            qInfo("UP TO HERE 0");
             ui->vocabInfoOutput->append(verb_type.c_str());
+            qInfo("UP TO HERE 1");
             ui->vocabInfoOutput->append(vocab_sample.as<std::string>().c_str());
+            qInfo("UP TO HERE 2");
         }
     }
     else if(ui->langDetailTree->model()->data(curr.parent()).toString().toLatin1() == "Nouns"){
