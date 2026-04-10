@@ -5,7 +5,31 @@
 #include <QStandardItem>
 #include <QStandardItemModel>
 #include <QTreeView>
+#include <QDir>
+#include <QFileInfo>
 // #include <string>
+
+namespace {
+
+QString resolveProjectFilePath(const QString &fileName)
+{
+    const QDir appDir(QCoreApplication::applicationDirPath());
+    const QStringList candidates = {
+        appDir.filePath("../../../../../" + fileName),
+        appDir.filePath("../../" + fileName),
+        QDir::current().filePath(fileName)
+    };
+
+    for (const QString &candidate : candidates) {
+        if (QFileInfo::exists(candidate)) {
+            return QFileInfo(candidate).absoluteFilePath();
+        }
+    }
+
+    return {};
+}
+
+} // namespace
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -14,12 +38,9 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     // read in the language spec YAML and populate the list of available languages
-    // MacOS/Linux
-    // YAML::Node lang_spec = YAML::LoadFile("../../../../../spec.yaml");
-    // YAML::Node lang_db = YAML::LoadFile("../../../../../language.yaml");
-    // Windows
-    YAML::Node lang_spec = YAML::LoadFile("../../spec.yaml");
-    YAML::Node lang_db = YAML::LoadFile("../../language.yaml");
+    YAML::Node lang_spec = YAML::LoadFile(resolveProjectFilePath("spec.yaml").toStdString());
+    YAML::Node lang_db = YAML::LoadFile(resolveProjectFilePath("language.yaml").toStdString());
+
 
     // TODO: this needs to be able to be derived for each language, it should be possible to be derived
     // from the spec.yaml for each language
