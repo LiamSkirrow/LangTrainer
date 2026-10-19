@@ -5,9 +5,12 @@
 #include <QString>
 #include <QStringList>
 
+#include <functional>
+
 class QLabel;
 class QListWidget;
 class QPushButton;
+class QWidget;
 
 struct SelectionOption {
     QString value;
@@ -22,6 +25,8 @@ struct SelectionDialogConfig {
     QString settingsKey;
     QString continueLabel;
     QList<SelectionOption> options;
+    QString detailsLabel;
+    std::function<void(const QString &, QWidget *)> showDetails;
 };
 
 class SelectionDialog : public QDialog {

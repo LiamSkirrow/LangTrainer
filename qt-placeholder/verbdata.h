@@ -15,5 +15,6 @@ struct VerbCatalog {
 // Reads the Spanish verb fields from the bundled language.yaml and spec.yaml.
 bool loadSpanishCatalog(VerbCatalog &catalog, QString &error);
 
-// Display name used by the tense chooser and exercise prompt.
+// Display names used by the chooser, reference window, and exercise.
 QString spanishTenseName(const QString &tense);
+QString spanishSubjectName(const QString &subject);

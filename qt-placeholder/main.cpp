@@ -1,5 +1,6 @@
 #include "verbdata.h"
 #include "verbexercisedialog.h"
+#include "verbformsdialog.h"
 #include "selectiondialog.h"
 
 #include <QApplication>
@@ -20,11 +21,26 @@
 
 namespace {
 
-struct PracticeMode {
-    const char *name;
-    const char *description;
-    const char *buttonText;
-};
+QPushButton *addPracticeRow(QGridLayout *layout, int row, const QString &name,
+                            const QString &description, const QString &buttonText,
+                            bool available)
+{
+    auto *nameLabel = new QLabel(name);
+    QFont nameFont = nameLabel->font();
+    nameFont.setBold(true);
+    nameLabel->setFont(nameFont);
+    layout->addWidget(nameLabel, row, 0);
+
+    auto *descriptionLabel = new QLabel(description);
+    descriptionLabel->setWordWrap(true);
+    layout->addWidget(descriptionLabel, row, 1);
+
+    auto *button = new QPushButton(buttonText);
+    button->setMinimumWidth(110);
+    button->setEnabled(available);
+    layout->addWidget(button, row, 2);
+    return button;
+}
 
 class MainWindow : public QMainWindow {
 public:
@@ -75,42 +91,7 @@ public:
         auto *selectionHint = new QLabel("Select a language to see its practice modes.");
         layout->addWidget(selectionHint);
 
-        auto *practiceGroup = new QGroupBox("Spanish practice modes");
-        auto *practiceLayout = new QGridLayout(practiceGroup);
-        practiceLayout->setHorizontalSpacing(18);
-        practiceLayout->setVerticalSpacing(13);
-        practiceLayout->setColumnStretch(1, 1);
-
-        const PracticeMode modes[] = {
-            {"Verb conjugation", "Practise verb forms across people and tenses.", "Choose verbs..."},
-            {"Vocabulary", "Review useful words and their meanings.", "Practise"},
-            {"Sentence practice", "Use words and grammar together in context.", "Practise"},
-            {"Listening and speaking", "Respond to spoken prompts.", "Practise"},
-            {"Noun declension", "For languages with noun cases; not used in Spanish.", "Not available"},
-        };
-
-        int row = 0;
-        for (const auto &mode : modes) {
-            auto *name = new QLabel(QString::fromUtf8(mode.name));
-            QFont nameFont = name->font();
-            nameFont.setBold(true);
-            name->setFont(nameFont);
-            practiceLayout->addWidget(name, row, 0);
-
-            auto *description = new QLabel(QString::fromUtf8(mode.description));
-            description->setWordWrap(true);
-            practiceLayout->addWidget(description, row, 1);
-
-            auto *button = new QPushButton(QString::fromUtf8(mode.buttonText));
-            button->setMinimumWidth(110);
-            button->setEnabled(row == 0);
-            if (row == 0) {
-                connect(button, &QPushButton::clicked, this, [this] { startVerbPractice(); });
-            }
-            practiceLayout->addWidget(button, row, 2);
-            ++row;
-        }
-
+        auto *practiceGroup = createSpanishPracticeGroup();
         practiceGroup->hide();
         layout->addWidget(practiceGroup);
         layout->addStretch();
@@ -127,6 +108,24 @@ public:
     }
 
 private:
+    QGroupBox *createSpanishPracticeGroup()
+    {
+        auto *group = new QGroupBox("Spanish practice modes");
+        auto *grid = new QGridLayout(group);
+        grid->setHorizontalSpacing(18);
+        grid->setVerticalSpacing(13);
+        grid->setColumnStretch(1, 1);
+
+        auto *verbButton = addPracticeRow(grid, 0, "Verb conjugation",
+            "Practise verb forms across people and tenses.", "Choose verbs...", true);
+        connect(verbButton, &QPushButton::clicked, this, [this] { startVerbPractice(); });
+        addPracticeRow(grid, 1, "Sentence practice",
+            "Use words and grammar together in context.", "Practise", false);
+        addPracticeRow(grid, 2, "Listening and speaking",
+            "Respond to spoken prompts.", "Practise", false);
+        return group;
+    }
+
     void startVerbPractice()
     {
         VerbCatalog catalog;
@@ -138,11 +137,16 @@ private:
 
         SelectionDialogConfig verbConfig;
         verbConfig.title = "Choose Spanish verbs";
-        verbConfig.instruction = "Choose the verbs for this practice session.";
+        verbConfig.instruction = "Check verbs to practise. Highlight one to view its forms.";
         verbConfig.searchPlaceholder = "Search verbs or English meanings...";
         verbConfig.itemName = "verbs";
         verbConfig.settingsKey = "Spanish/verbConjugation/selectedVerbs";
         verbConfig.continueLabel = "Next: tenses";
+        verbConfig.detailsLabel = "View forms...";
+        verbConfig.showDetails = [&catalog](const QString &verb, QWidget *parent) {
+            VerbFormsDialog forms(catalog, verb, parent);
+            forms.exec();
+        };
         QStringList sortedVerbs = catalog.verbs;
         sortedVerbs.sort(Qt::CaseInsensitive);
         for (const QString &verb : sortedVerbs) {

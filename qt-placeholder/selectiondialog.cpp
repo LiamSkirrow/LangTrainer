@@ -19,7 +19,9 @@ SelectionDialog::SelectionDialog(const SelectionDialogConfig &config, QWidget *p
     setMinimumSize(350, 380);
 
     auto *layout = new QVBoxLayout(this);
-    layout->addWidget(new QLabel(config.instruction));
+    auto *instruction = new QLabel(config.instruction);
+    instruction->setWordWrap(true);
+    layout->addWidget(instruction);
 
     auto *search = new QLineEdit;
     search->setPlaceholderText(config.searchPlaceholder);
@@ -60,6 +62,20 @@ SelectionDialog::SelectionDialog(const SelectionDialogConfig &config, QWidget *p
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Cancel);
     continueButton_ = buttons->addButton(config.continueLabel, QDialogButtonBox::AcceptRole);
+    if (config.showDetails) {
+        auto *detailsButton = buttons->addButton(config.detailsLabel, QDialogButtonBox::ActionRole);
+        detailsButton->setEnabled(false);
+        detailsButton->setToolTip("Highlight one row to view its details.");
+        connect(itemList_, &QListWidget::currentItemChanged, this,
+                [detailsButton](QListWidgetItem *current) {
+                    detailsButton->setEnabled(current != nullptr);
+                });
+        connect(detailsButton, &QPushButton::clicked, this,
+                [this, showDetails = config.showDetails] {
+                    if (const auto *item = itemList_->currentItem())
+                        showDetails(item->data(Qt::UserRole).toString(), this);
+                });
+    }
     layout->addWidget(buttons);
 
     connect(search, &QLineEdit::textChanged, this, [this](const QString &query) {
@@ -67,6 +83,8 @@ SelectionDialog::SelectionDialog(const SelectionDialogConfig &config, QWidget *p
             auto *item = itemList_->item(i);
             item->setHidden(!item->text().contains(query, Qt::CaseInsensitive));
         }
+        if (auto *current = itemList_->currentItem(); current && current->isHidden())
+            itemList_->setCurrentItem(nullptr);
     });
     connect(selectAll, &QPushButton::clicked, this, [this] {
         const QSignalBlocker blocker(itemList_);

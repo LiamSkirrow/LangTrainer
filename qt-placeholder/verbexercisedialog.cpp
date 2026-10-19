@@ -13,18 +13,6 @@
 #include <QVBoxLayout>
 
 namespace {
-QString displaySubject(const QString &subject)
-{
-    if (subject == QLatin1String("1psing")) return QStringLiteral("yo");
-    if (subject == QLatin1String("1ppl")) return QStringLiteral("nosotros / nosotras");
-    if (subject == QLatin1String("2pfam")) return QStringLiteral("tú");
-    if (subject == QLatin1String("2ppol")) return QStringLiteral("usted");
-    if (subject == QLatin1String("2ppl")) return QStringLiteral("ustedes");
-    if (subject == QLatin1String("3psing")) return QStringLiteral("él / ella");
-    if (subject == QLatin1String("3ppl")) return QStringLiteral("ellos / ellas");
-    return subject;
-}
-
 QString normalizedAnswer(const QString &answer)
 {
     return answer.simplified().toCaseFolded()
@@ -142,7 +130,7 @@ void VerbExerciseDialog::showQuestion()
     questionNumber_->setText(QStringLiteral("Question %1").arg(questionIndex_ + 1));
     verbLabel_->setText(QStringLiteral("%1 — %2").arg(prompt.verb, prompt.meaning));
     tenseLabel_->setText(spanishTenseName(prompt.tense));
-    subjectLabel_->setText(displaySubject(prompt.subject));
+    subjectLabel_->setText(spanishSubjectName(prompt.subject));
     answerEdit_->clear();
     answerEdit_->setEnabled(true);
     characterRow_->setEnabled(true);

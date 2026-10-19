@@ -167,3 +167,15 @@ QString spanishTenseName(const QString &tense)
     QString label = tense;
     return label.replace(QLatin1Char('_'), QLatin1Char(' '));
 }
+
+QString spanishSubjectName(const QString &subject)
+{
+    if (subject == QLatin1String("1psing")) return QStringLiteral("yo");
+    if (subject == QLatin1String("1ppl")) return QStringLiteral("nosotros / nosotras");
+    if (subject == QLatin1String("2pfam")) return QStringLiteral("tú");
+    if (subject == QLatin1String("2ppol")) return QStringLiteral("usted");
+    if (subject == QLatin1String("2ppl")) return QStringLiteral("ustedes");
+    if (subject == QLatin1String("3psing")) return QStringLiteral("él / ella");
+    if (subject == QLatin1String("3ppl")) return QStringLiteral("ellos / ellas");
+    return subject;
+}
