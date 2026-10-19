@@ -8,25 +8,11 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QRandomGenerator>
+#include <QToolButton>
+#include <QWidget>
 #include <QVBoxLayout>
 
 namespace {
-QString displayTense(const QString &tense)
-{
-    if (tense == QLatin1String("present")) return QStringLiteral("Present");
-    if (tense == QLatin1String("present_cont")) return QStringLiteral("Present progressive");
-    if (tense == QLatin1String("simple_past")) return QStringLiteral("Preterite");
-    if (tense == QLatin1String("imperfect_past")) return QStringLiteral("Imperfect");
-    if (tense == QLatin1String("present_perf")) return QStringLiteral("Present perfect");
-    if (tense == QLatin1String("pluperfect")) return QStringLiteral("Past perfect");
-    if (tense == QLatin1String("future")) return QStringLiteral("Future");
-    if (tense == QLatin1String("future_perf")) return QStringLiteral("Future perfect");
-    if (tense == QLatin1String("conditional")) return QStringLiteral("Conditional");
-    if (tense == QLatin1String("conditional_perf")) return QStringLiteral("Conditional perfect");
-    QString label = tense;
-    return label.replace(QLatin1Char('_'), QLatin1Char(' '));
-}
-
 QString displaySubject(const QString &subject)
 {
     if (subject == QLatin1String("1psing")) return QStringLiteral("yo");
@@ -41,19 +27,21 @@ QString displaySubject(const QString &subject)
 
 QString normalizedAnswer(const QString &answer)
 {
-    return answer.simplified().normalized(QString::NormalizationForm_C).toCaseFolded();
+    return answer.simplified().toCaseFolded()
+                 .normalized(QString::NormalizationForm_C);
 }
 }
 
 VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
-                                       const QStringList &selectedVerbs, QWidget *parent)
+                                       const QStringList &selectedVerbs,
+                                       const QStringList &selectedTenses, QWidget *parent)
     : QDialog(parent)
 {
     setWindowTitle("Spanish verb conjugation");
     resize(500, 330);
     setMinimumWidth(410);
 
-    for (const QString &tense : catalog.tenses) {
+    for (const QString &tense : selectedTenses) {
         for (const QString &subject : catalog.subjects) {
             const auto forms = catalog.forms.value(
                 QStringLiteral("Verbs-%1-%2").arg(tense, subject));
@@ -81,8 +69,28 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
     layout->addWidget(promptGroup);
 
     answerEdit_ = new QLineEdit;
-    answerEdit_->setPlaceholderText("Type the Spanish form");
+    answerEdit_->setPlaceholderText("Type the Spanish form (include accents)");
     layout->addWidget(answerEdit_);
+
+    characterRow_ = new QWidget;
+    auto *characterLayout = new QHBoxLayout(characterRow_);
+    characterLayout->setContentsMargins(0, 0, 0, 0);
+    characterLayout->setSpacing(4);
+    characterLayout->addWidget(new QLabel("Insert:"));
+    for (const QChar character : QStringLiteral("áéíóúüñ")) {
+        const QString letter(character);
+        auto *button = new QToolButton(characterRow_);
+        button->setText(letter);
+        button->setToolTip(QStringLiteral("Insert %1").arg(letter));
+        button->setFixedWidth(34);
+        characterLayout->addWidget(button);
+        connect(button, &QToolButton::clicked, this, [this, letter] {
+            answerEdit_->insert(letter);
+            answerEdit_->setFocus();
+        });
+    }
+    characterLayout->addStretch();
+    layout->addWidget(characterRow_);
 
     feedbackLabel_ = new QLabel;
     feedbackLabel_->setTextFormat(Qt::PlainText);
@@ -133,10 +141,11 @@ void VerbExerciseDialog::showQuestion()
     const Prompt &prompt = prompts_.at(questionIndex_);
     questionNumber_->setText(QStringLiteral("Question %1").arg(questionIndex_ + 1));
     verbLabel_->setText(QStringLiteral("%1 — %2").arg(prompt.verb, prompt.meaning));
-    tenseLabel_->setText(displayTense(prompt.tense));
+    tenseLabel_->setText(spanishTenseName(prompt.tense));
     subjectLabel_->setText(displaySubject(prompt.subject));
     answerEdit_->clear();
     answerEdit_->setEnabled(true);
+    characterRow_->setEnabled(true);
     feedbackLabel_->clear();
     checkButton_->setEnabled(false);
     showButton_->setEnabled(true);
@@ -154,9 +163,10 @@ void VerbExerciseDialog::checkAnswer()
     const QString answer = prompts_.at(questionIndex_).answer;
     const bool correct = normalizedAnswer(answerEdit_->text()) == normalizedAnswer(answer);
     if (correct) ++correct_;
-    feedbackLabel_->setText(correct ? QStringLiteral("Correct!")
+    feedbackLabel_->setText(correct ? QStringLiteral("Correct! Standard spelling: %1").arg(answer)
                                     : QStringLiteral("Correct answer: %1").arg(answer));
     answerEdit_->setEnabled(false);
+    characterRow_->setEnabled(false);
     checkButton_->setEnabled(false);
     showButton_->setEnabled(false);
     nextButton_->setEnabled(true);
@@ -171,6 +181,7 @@ void VerbExerciseDialog::revealAnswer(bool skipped)
     if (skipped) ++skipped_;
     feedbackLabel_->setText(QStringLiteral("Answer: %1").arg(prompts_.at(questionIndex_).answer));
     answerEdit_->setEnabled(false);
+    characterRow_->setEnabled(false);
     checkButton_->setEnabled(false);
     showButton_->setEnabled(false);
     nextButton_->setEnabled(true);

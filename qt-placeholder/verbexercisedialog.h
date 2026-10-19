@@ -8,11 +8,12 @@
 class QLabel;
 class QLineEdit;
 class QPushButton;
+class QWidget;
 
 class VerbExerciseDialog : public QDialog {
 public:
     VerbExerciseDialog(const VerbCatalog &catalog, const QStringList &selectedVerbs,
-                       QWidget *parent = nullptr);
+                       const QStringList &selectedTenses, QWidget *parent = nullptr);
 
 private:
     struct Prompt {
@@ -40,6 +41,7 @@ private:
     QLabel *feedbackLabel_ = nullptr;
     QLabel *scoreLabel_ = nullptr;
     QLineEdit *answerEdit_ = nullptr;
+    QWidget *characterRow_ = nullptr;
     QPushButton *checkButton_ = nullptr;
     QPushButton *showButton_ = nullptr;
     QPushButton *nextButton_ = nullptr;

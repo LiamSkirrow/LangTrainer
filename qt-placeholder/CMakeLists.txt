@@ -13,8 +13,8 @@ add_executable(LangTrainer
     main.cpp
     verbdata.cpp
     verbdata.h
-    verbselectiondialog.cpp
-    verbselectiondialog.h
+    selectiondialog.cpp
+    selectiondialog.h
     verbexercisedialog.cpp
     verbexercisedialog.h
     resources.qrc

@@ -1,6 +1,6 @@
 #include "verbdata.h"
 #include "verbexercisedialog.h"
-#include "verbselectiondialog.h"
+#include "selectiondialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -121,7 +121,7 @@ public:
                     const bool spanishSelected = index == 1;
                     practiceGroup->setVisible(spanishSelected);
                     selectionHint->setText(spanishSelected
-                        ? "Spanish is selected. Choose verbs to start conjugation practice."
+                        ? "Spanish is selected. Choose verbs and tenses to start conjugation practice."
                         : "Select a language to see its practice modes.");
                 });
     }
@@ -136,11 +136,37 @@ private:
             return;
         }
 
-        VerbSelectionDialog selection(catalog, this);
-        if (selection.exec() != QDialog::Accepted)
+        SelectionDialogConfig verbConfig;
+        verbConfig.title = "Choose Spanish verbs";
+        verbConfig.instruction = "Choose the verbs for this practice session.";
+        verbConfig.searchPlaceholder = "Search verbs or English meanings...";
+        verbConfig.itemName = "verbs";
+        verbConfig.settingsKey = "Spanish/verbConjugation/selectedVerbs";
+        verbConfig.continueLabel = "Next: tenses";
+        QStringList sortedVerbs = catalog.verbs;
+        sortedVerbs.sort(Qt::CaseInsensitive);
+        for (const QString &verb : sortedVerbs) {
+            verbConfig.options.append(
+                {verb, QStringLiteral("%1 — %2").arg(verb, catalog.english.value(verb))});
+        }
+        SelectionDialog verbs(verbConfig, this);
+        if (verbs.exec() != QDialog::Accepted)
             return;
 
-        VerbExerciseDialog exercise(catalog, selection.selectedVerbs(), this);
+        SelectionDialogConfig tenseConfig;
+        tenseConfig.title = "Choose Spanish tenses";
+        tenseConfig.instruction = "Choose the tenses for this practice session.";
+        tenseConfig.searchPlaceholder = "Search tenses...";
+        tenseConfig.itemName = "tenses";
+        tenseConfig.settingsKey = "Spanish/verbConjugation/selectedTenses";
+        tenseConfig.continueLabel = "Start practice";
+        for (const QString &tense : catalog.tenses)
+            tenseConfig.options.append({tense, spanishTenseName(tense)});
+        SelectionDialog tenses(tenseConfig, this);
+        if (tenses.exec() != QDialog::Accepted)
+            return;
+
+        VerbExerciseDialog exercise(catalog, verbs.selectedValues(), tenses.selectedValues(), this);
         exercise.exec();
     }
 };

@@ -151,3 +151,19 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
     error.clear();
     return true;
 }
+
+QString spanishTenseName(const QString &tense)
+{
+    if (tense == QLatin1String("present")) return QStringLiteral("Present");
+    if (tense == QLatin1String("present_cont")) return QStringLiteral("Present progressive");
+    if (tense == QLatin1String("simple_past")) return QStringLiteral("Preterite");
+    if (tense == QLatin1String("imperfect_past")) return QStringLiteral("Imperfect");
+    if (tense == QLatin1String("present_perf")) return QStringLiteral("Present perfect");
+    if (tense == QLatin1String("pluperfect")) return QStringLiteral("Past perfect");
+    if (tense == QLatin1String("future")) return QStringLiteral("Future");
+    if (tense == QLatin1String("future_perf")) return QStringLiteral("Future perfect");
+    if (tense == QLatin1String("conditional")) return QStringLiteral("Conditional");
+    if (tense == QLatin1String("conditional_perf")) return QStringLiteral("Conditional perfect");
+    QString label = tense;
+    return label.replace(QLatin1Char('_'), QLatin1Char(' '));
+}
