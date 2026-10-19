@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/data">
+        <file alias="language.yaml">../language.yaml</file>
+        <file alias="spec.yaml">../spec.yaml</file>
+    </qresource>
+</RCC>

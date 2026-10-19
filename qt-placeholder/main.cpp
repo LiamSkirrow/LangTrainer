@@ -1,4 +1,9 @@
+#include "verbdata.h"
+#include "verbexercisedialog.h"
+#include "verbselectiondialog.h"
+
 #include <QApplication>
+#include <QDebug>
 #include <QComboBox>
 #include <QFont>
 #include <QGridLayout>
@@ -7,6 +12,7 @@
 #include <QLabel>
 #include <QListView>
 #include <QMainWindow>
+#include <QMessageBox>
 #include <QPalette>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -76,7 +82,7 @@ public:
         practiceLayout->setColumnStretch(1, 1);
 
         const PracticeMode modes[] = {
-            {"Verb conjugation", "Practise verb forms across people and tenses.", "Practise"},
+            {"Verb conjugation", "Practise verb forms across people and tenses.", "Choose verbs..."},
             {"Vocabulary", "Review useful words and their meanings.", "Practise"},
             {"Sentence practice", "Use words and grammar together in context.", "Practise"},
             {"Listening and speaking", "Respond to spoken prompts.", "Practise"},
@@ -97,7 +103,10 @@ public:
 
             auto *button = new QPushButton(QString::fromUtf8(mode.buttonText));
             button->setMinimumWidth(110);
-            button->setEnabled(false); // Practice screens are placeholders for now.
+            button->setEnabled(row == 0);
+            if (row == 0) {
+                connect(button, &QPushButton::clicked, this, [this] { startVerbPractice(); });
+            }
             practiceLayout->addWidget(button, row, 2);
             ++row;
         }
@@ -112,9 +121,27 @@ public:
                     const bool spanishSelected = index == 1;
                     practiceGroup->setVisible(spanishSelected);
                     selectionHint->setText(spanishSelected
-                        ? "Spanish is selected. Practice screens are coming soon."
+                        ? "Spanish is selected. Choose verbs to start conjugation practice."
                         : "Select a language to see its practice modes.");
                 });
+    }
+
+private:
+    void startVerbPractice()
+    {
+        VerbCatalog catalog;
+        QString error;
+        if (!loadSpanishCatalog(catalog, error)) {
+            QMessageBox::critical(this, "Vocabulary error", error);
+            return;
+        }
+
+        VerbSelectionDialog selection(catalog, this);
+        if (selection.exec() != QDialog::Accepted)
+            return;
+
+        VerbExerciseDialog exercise(catalog, selection.selectedVerbs(), this);
+        exercise.exec();
     }
 };
 
@@ -123,6 +150,22 @@ public:
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
+    QApplication::setOrganizationName("LangTrainer");
+    QApplication::setApplicationName("LangTrainer");
+
+    if (app.arguments().contains(QStringLiteral("--check-data"))) {
+        VerbCatalog catalog;
+        QString error;
+        if (!loadSpanishCatalog(catalog, error)) {
+            qCritical().noquote() << error;
+            return 1;
+        }
+        qInfo().noquote() << QStringLiteral("Loaded %1 Spanish verbs, %2 tenses, and %3 subjects.")
+                                 .arg(catalog.verbs.size()).arg(catalog.tenses.size())
+                                 .arg(catalog.subjects.size());
+        return 0;
+    }
+
     MainWindow window;
     window.show();
     return app.exec();
