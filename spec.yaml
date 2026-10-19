@@ -34,7 +34,8 @@ specs:
     numCases: 0
     cases: []
     nounsInflect: 0
-    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
+    # Mexican Spanish: ustedes is used for plural "you" in all registers.
+    verbConjugations: ['1psing', '1ppl', '2pfam', '2ppol', '2ppl', '3psing', '3ppl']
     tenses: ['present', 'present_cont', 'simple_past', 'imperfect_past', 'present_perf', 'pluperfect', 'future', 'future_perf', 'conditional', 'conditional_perf']
 
 
@@ -49,6 +50,7 @@ specs:
 #   2pfampl = 2nd person familir plural: ihr
 #   2ppol   = 2nd person polite/formal: Sie
 #   2ppolpl = 2nd person polite/formal plural: Sie
+#   2ppl    = 2nd person plural without a formality split: ustedes in Mexico
 #   3psing  = 3rd person singular: er/sie/es
 #   3ppl    = 3rd person plural: sie
 
