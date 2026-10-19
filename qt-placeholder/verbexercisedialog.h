@@ -23,18 +23,25 @@ private:
         QString subject;
         QString answer;
     };
+    struct IncorrectCard {
+        Prompt prompt;
+        QString response;
+    };
 
     void showQuestion();
     void checkAnswer();
     void revealAnswer(bool skipped);
     void updateScore();
+    void finishSession();
 
     QVector<Prompt> prompts_;
+    QVector<IncorrectCard> incorrectCards_;
     int questionIndex_ = 0;
     int attempted_ = 0;
     int correct_ = 0;
     int skipped_ = 0;
     QLabel *questionNumber_ = nullptr;
+    QLabel *queueLabel_ = nullptr;
     QLabel *verbLabel_ = nullptr;
     QLabel *tenseLabel_ = nullptr;
     QLabel *subjectLabel_ = nullptr;

@@ -1,14 +1,18 @@
 #include "verbexercisedialog.h"
 
+#include <QDialogButtonBox>
+#include <QFont>
 #include <QFormLayout>
+#include <QHash>
+#include <QHeaderView>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QRandomGenerator>
 #include <QToolButton>
+#include <QTreeWidget>
 #include <QWidget>
 #include <QVBoxLayout>
 
@@ -43,8 +47,13 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
         prompts_.swapItemsAt(i, QRandomGenerator::global()->bounded(i + 1));
 
     auto *layout = new QVBoxLayout(this);
+    auto *progressRow = new QHBoxLayout;
     questionNumber_ = new QLabel;
-    layout->addWidget(questionNumber_);
+    queueLabel_ = new QLabel;
+    progressRow->addWidget(questionNumber_);
+    progressRow->addStretch();
+    progressRow->addWidget(queueLabel_);
+    layout->addLayout(progressRow);
 
     auto *promptGroup = new QGroupBox("Conjugate the verb");
     auto *promptLayout = new QFormLayout(promptGroup);
@@ -111,23 +120,22 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
     connect(showButton_, &QPushButton::clicked, this, [this] { revealAnswer(true); });
     connect(nextButton_, &QPushButton::clicked, this, [this] {
         ++questionIndex_;
-        if (questionIndex_ == prompts_.size()) {
-            QMessageBox::information(this, "Practice complete",
-                QStringLiteral("You answered %1 of %2 attempts correctly and skipped %3 questions.")
-                    .arg(correct_).arg(attempted_).arg(skipped_));
-            accept();
-        } else {
+        if (questionIndex_ == prompts_.size())
+            finishSession();
+        else
             showQuestion();
-        }
     });
-    connect(finishButton, &QPushButton::clicked, this, &QDialog::accept);
+    connect(finishButton, &QPushButton::clicked, this, [this] { finishSession(); });
     showQuestion();
 }
 
 void VerbExerciseDialog::showQuestion()
 {
     const Prompt &prompt = prompts_.at(questionIndex_);
-    questionNumber_->setText(QStringLiteral("Question %1").arg(questionIndex_ + 1));
+    questionNumber_->setText(QStringLiteral("Card %1 of %2")
+                                 .arg(questionIndex_ + 1).arg(prompts_.size()));
+    queueLabel_->setText(QStringLiteral("Waiting in queue: %1")
+                             .arg(prompts_.size() - questionIndex_ - 1));
     verbLabel_->setText(QStringLiteral("%1 — %2").arg(prompt.verb, prompt.meaning));
     tenseLabel_->setText(spanishTenseName(prompt.tense));
     subjectLabel_->setText(spanishSubjectName(prompt.subject));
@@ -138,6 +146,8 @@ void VerbExerciseDialog::showQuestion()
     checkButton_->setEnabled(false);
     showButton_->setEnabled(true);
     nextButton_->setEnabled(false);
+    nextButton_->setText(questionIndex_ + 1 == prompts_.size()
+                             ? QStringLiteral("View summary") : QStringLiteral("Next question"));
     checkButton_->setDefault(true);
     nextButton_->setDefault(false);
     updateScore();
@@ -150,7 +160,10 @@ void VerbExerciseDialog::checkAnswer()
     ++attempted_;
     const QString answer = prompts_.at(questionIndex_).answer;
     const bool correct = normalizedAnswer(answerEdit_->text()) == normalizedAnswer(answer);
-    if (correct) ++correct_;
+    if (correct)
+        ++correct_;
+    else
+        incorrectCards_.append({prompts_.at(questionIndex_), answerEdit_->text().trimmed()});
     feedbackLabel_->setText(correct ? QStringLiteral("Correct! Standard spelling: %1").arg(answer)
                                     : QStringLiteral("Correct answer: %1").arg(answer));
     answerEdit_->setEnabled(false);
@@ -183,4 +196,73 @@ void VerbExerciseDialog::updateScore()
 {
     scoreLabel_->setText(QStringLiteral("Correct: %1 / %2 tried    Skipped: %3")
                              .arg(correct_).arg(attempted_).arg(skipped_));
+}
+
+void VerbExerciseDialog::finishSession()
+{
+    QDialog summary(this);
+    summary.setWindowTitle("Session summary");
+    summary.resize(700, 420);
+    summary.setMinimumSize(520, 300);
+
+    auto *layout = new QVBoxLayout(&summary);
+    auto *heading = new QLabel("Spanish verb practice — session summary");
+    QFont headingFont = heading->font();
+    headingFont.setBold(true);
+    heading->setFont(headingFont);
+    layout->addWidget(heading);
+
+    const int unseen = prompts_.size() - attempted_ - skipped_;
+    auto *stats = new QLabel(QStringLiteral(
+        "Correct: %1 of %2 attempted    Incorrect: %3    Skipped: %4    Unseen: %5")
+        .arg(correct_).arg(attempted_).arg(incorrectCards_.size())
+        .arg(skipped_).arg(unseen));
+    stats->setWordWrap(true);
+    layout->addWidget(stats);
+    layout->addWidget(new QLabel(QStringLiteral("Incorrect cards (%1)")
+                                     .arg(incorrectCards_.size())));
+
+    if (incorrectCards_.isEmpty()) {
+        layout->addWidget(new QLabel("No incorrect answers this session."));
+        layout->addStretch();
+    } else {
+        auto *list = new QTreeWidget;
+        list->setHeaderLabels({QStringLiteral("Verb / subject"),
+                               QStringLiteral("Your answer"),
+                               QStringLiteral("Correct form")});
+        list->setAlternatingRowColors(true);
+        list->setUniformRowHeights(true);
+        list->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        list->setColumnWidth(0, 260);
+        list->setColumnWidth(1, 140);
+        list->header()->setStretchLastSection(true);
+
+        QHash<QString, QTreeWidgetItem *> tenseGroups;
+        for (const IncorrectCard &card : incorrectCards_) {
+            auto *group = tenseGroups.value(card.prompt.tense, nullptr);
+            if (!group) {
+                group = new QTreeWidgetItem(list);
+                group->setText(0, spanishTenseName(card.prompt.tense));
+                QFont groupFont = group->font(0);
+                groupFont.setBold(true);
+                group->setFont(0, groupFont);
+                tenseGroups.insert(card.prompt.tense, group);
+            }
+            auto *item = new QTreeWidgetItem(group);
+            item->setText(0, QStringLiteral("%1 (%2) — %3")
+                                 .arg(card.prompt.verb, card.prompt.meaning,
+                                      spanishSubjectName(card.prompt.subject)));
+            item->setText(1, card.response);
+            item->setText(2, card.prompt.answer);
+            item->setToolTip(0, item->text(0));
+        }
+        list->expandAll();
+        layout->addWidget(list);
+    }
+
+    auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close);
+    connect(buttons, &QDialogButtonBox::rejected, &summary, &QDialog::accept);
+    layout->addWidget(buttons);
+    summary.exec();
+    accept();
 }
