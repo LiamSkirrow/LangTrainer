@@ -1,6 +1,6 @@
 # LangTrainer
 
-Development in progress...
+Disclaimer: I revived this project with Codex, a lot of code and UI work are AI generated.
 
 ### Dev Ideas
 - the 'language browser' that shows the available vocab for a given language is now integrated into the main window. Selecting a language makes its loaded vocab appear in a QTreeView, and clicking on an individual word in that tree view makes the 'details' of that word pop up in the Details column of the QTreeView. This avoids having to click an extra button only to open up an extra window to go searching for the vocab currently loaded in a given language.
