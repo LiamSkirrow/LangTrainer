@@ -1,0 +1,41 @@
+# Qt Creator and editor state
+.qtcreator/
+*.pro.user*
+*.qbs.user*
+CMakeLists.txt.user*
+*.autosave
+*~
+.DS_Store
+
+# Out-of-source CMake and Qt Creator builds
+build*/
+cmake-build*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+.ninja_*
+build.ninja
+
+# Generated Qt source and translations
+*_autogen/
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+*.moc
+*.qm
+*.qmlc
+*.jsc
+.qmake.stash
+
+# Compiler and linker outputs
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.app/
