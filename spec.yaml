@@ -13,7 +13,10 @@ specs:
     numCases: 6
     cases: ['nominative', 'accusative', 'dative', 'genitive', 'instrumental', 'prepositional']
     nounsInflect: 1
-    verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']  
+    # Present and compound future use person/number; past singular also needs gender.
+    verbConjugations: ['1psing', '2psing', '3psing', '1ppl', '2ppl', '3ppl']
+    tenses: ['present', 'past', 'future']
+    tenseSubjects-past: ['1psing_m', '1psing_f', '2psing_m', '2psing_f', '3psing_m', '3psing_f', '3psing_n', '1ppl', '2ppl', '3ppl']
   Polish:
     numGenders: 3
     genders: ['m', 'f', 'n']
@@ -53,6 +56,9 @@ specs:
 #   2ppl    = 2nd person plural without a formality split: ustedes in Mexico
 #   3psing  = 3rd person singular: er/sie/es
 #   3ppl    = 3rd person plural: sie
+#   2psing  = 2nd person singular: ты in Russian
+#   1psing_m, 1psing_f, 2psing_m, 2psing_f, 3psing_m, 3psing_f, 3psing_n
+#             = Russian past singular subjects with grammatical gender
 
 #   nounsInflect: determine whether the noun or the article inflects on case
 

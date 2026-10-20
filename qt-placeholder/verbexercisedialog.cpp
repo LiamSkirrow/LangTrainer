@@ -29,12 +29,13 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
                                        const QStringList &selectedTenses, QWidget *parent)
     : QDialog(parent)
 {
-    setWindowTitle("Spanish verb conjugation");
+    language_ = catalog.language;
+    setWindowTitle(QStringLiteral("%1 verb conjugation").arg(language_));
     resize(500, 330);
     setMinimumWidth(410);
 
     for (const QString &tense : selectedTenses) {
-        for (const QString &subject : catalog.subjects) {
+        for (const QString &subject : catalog.subjectsForTense(tense)) {
             const auto forms = catalog.forms.value(
                 QStringLiteral("Verbs-%1-%2").arg(tense, subject));
             for (const QString &verb : selectedVerbs) {
@@ -66,27 +67,51 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
     layout->addWidget(promptGroup);
 
     answerEdit_ = new QLineEdit;
-    answerEdit_->setPlaceholderText("Type the Spanish form (include accents)");
+    answerEdit_->setPlaceholderText(language_ == QLatin1String("Russian")
+        ? QStringLiteral("Type the Russian form in Cyrillic")
+        : QStringLiteral("Type the Spanish form (include accents)"));
     layout->addWidget(answerEdit_);
 
     characterRow_ = new QWidget;
-    auto *characterLayout = new QHBoxLayout(characterRow_);
-    characterLayout->setContentsMargins(0, 0, 0, 0);
-    characterLayout->setSpacing(4);
-    characterLayout->addWidget(new QLabel("Insert:"));
-    for (const QChar character : QStringLiteral("áéíóúüñ")) {
-        const QString letter(character);
-        auto *button = new QToolButton(characterRow_);
-        button->setText(letter);
-        button->setToolTip(QStringLiteral("Insert %1").arg(letter));
-        button->setFixedWidth(34);
-        characterLayout->addWidget(button);
-        connect(button, &QToolButton::clicked, this, [this, letter] {
-            answerEdit_->insert(letter);
-            answerEdit_->setFocus();
-        });
+    auto *keyboardLayout = new QVBoxLayout(characterRow_);
+    keyboardLayout->setContentsMargins(0, 0, 0, 0);
+    keyboardLayout->setSpacing(2);
+    const QStringList keyRows = language_ == QLatin1String("Russian")
+        ? QStringList{QStringLiteral("йцукенгшщзхъ"), QStringLiteral("фывапролджэ"),
+                      QStringLiteral("ячсмитьбюё")}
+        : QStringList{QStringLiteral("áéíóúüñ")};
+    for (int row = 0; row < keyRows.size(); ++row) {
+        auto *keyLayout = new QHBoxLayout;
+        keyLayout->setSpacing(3);
+        if (row == 0)
+            keyLayout->addWidget(new QLabel("Insert:"));
+        else
+            keyLayout->addSpacing(44);
+        for (const QChar character : keyRows.at(row)) {
+            const QString letter(character);
+            auto *button = new QToolButton(characterRow_);
+            button->setText(letter);
+            button->setToolTip(QStringLiteral("Insert %1").arg(letter));
+            button->setFixedWidth(language_ == QLatin1String("Russian") ? 29 : 34);
+            keyLayout->addWidget(button);
+            connect(button, &QToolButton::clicked, this, [this, letter] {
+                answerEdit_->insert(letter);
+                answerEdit_->setFocus();
+            });
+        }
+        if (language_ == QLatin1String("Russian") && row == keyRows.size() - 1) {
+            auto *spaceButton = new QToolButton(characterRow_);
+            spaceButton->setText("Space");
+            spaceButton->setToolTip("Insert a space between words");
+            keyLayout->addWidget(spaceButton);
+            connect(spaceButton, &QToolButton::clicked, this, [this] {
+                answerEdit_->insert(QStringLiteral(" "));
+                answerEdit_->setFocus();
+            });
+        }
+        keyLayout->addStretch();
+        keyboardLayout->addLayout(keyLayout);
     }
-    characterLayout->addStretch();
     layout->addWidget(characterRow_);
 
     feedbackLabel_ = new QLabel;
@@ -137,8 +162,8 @@ void VerbExerciseDialog::showQuestion()
     queueLabel_->setText(QStringLiteral("Waiting in queue: %1")
                              .arg(prompts_.size() - questionIndex_ - 1));
     verbLabel_->setText(QStringLiteral("%1 — %2").arg(prompt.verb, prompt.meaning));
-    tenseLabel_->setText(spanishTenseName(prompt.tense));
-    subjectLabel_->setText(spanishSubjectName(prompt.subject));
+    tenseLabel_->setText(tenseName(language_, prompt.tense));
+    subjectLabel_->setText(subjectName(language_, prompt.subject));
     answerEdit_->clear();
     answerEdit_->setEnabled(true);
     characterRow_->setEnabled(true);
@@ -206,7 +231,7 @@ void VerbExerciseDialog::finishSession()
     summary.setMinimumSize(520, 300);
 
     auto *layout = new QVBoxLayout(&summary);
-    auto *heading = new QLabel("Spanish verb practice — session summary");
+    auto *heading = new QLabel(QStringLiteral("%1 verb practice — session summary").arg(language_));
     QFont headingFont = heading->font();
     headingFont.setBold(true);
     heading->setFont(headingFont);
@@ -242,7 +267,7 @@ void VerbExerciseDialog::finishSession()
             auto *group = tenseGroups.value(card.prompt.tense, nullptr);
             if (!group) {
                 group = new QTreeWidgetItem(list);
-                group->setText(0, spanishTenseName(card.prompt.tense));
+                group->setText(0, tenseName(language_, card.prompt.tense));
                 QFont groupFont = group->font(0);
                 groupFont.setBold(true);
                 group->setFont(0, groupFont);
@@ -251,7 +276,7 @@ void VerbExerciseDialog::finishSession()
             auto *item = new QTreeWidgetItem(group);
             item->setText(0, QStringLiteral("%1 (%2) — %3")
                                  .arg(card.prompt.verb, card.prompt.meaning,
-                                      spanishSubjectName(card.prompt.subject)));
+                                      subjectName(language_, card.prompt.subject)));
             item->setText(1, card.response);
             item->setText(2, card.prompt.answer);
             item->setToolTip(0, item->text(0));

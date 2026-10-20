@@ -52,14 +52,20 @@ bool readResource(const QString &path, QStringList &lines, QString &error)
 
 } // namespace
 
-bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
+QStringList VerbCatalog::subjectsForTense(const QString &tense) const
+{
+    return tenseSubjects.value(tense, subjects);
+}
+
+bool loadVerbCatalog(const QString &language, VerbCatalog &catalog, QString &error)
 {
     QStringList lines;
     if (!readResource(QStringLiteral(":/data/language.yaml"), lines, error))
         return false;
 
     VerbCatalog loaded;
-    bool inSpanish = false;
+    loaded.language = language;
+    bool inLanguage = false;
     QString field;
     for (const QString &line : lines) {
         const QString content = line.trimmed();
@@ -68,11 +74,11 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
 
         const int depth = indentation(line);
         if (depth == 2 && content.endsWith(QLatin1Char(':'))) {
-            inSpanish = content == QLatin1String("Spanish:");
+            inLanguage = content == language + QLatin1Char(':');
             field.clear();
             continue;
         }
-        if (!inSpanish)
+        if (!inLanguage)
             continue;
         if (depth == 4 && content.endsWith(QLatin1Char(':'))) {
             field = content.left(content.size() - 1);
@@ -96,17 +102,17 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
 
     if (!readResource(QStringLiteral(":/data/spec.yaml"), lines, error))
         return false;
-    inSpanish = false;
+    inLanguage = false;
     for (const QString &line : lines) {
         const QString content = line.trimmed();
         if (content.isEmpty() || content.startsWith(QLatin1Char('#')))
             continue;
         const int depth = indentation(line);
         if (depth == 2 && content.endsWith(QLatin1Char(':'))) {
-            inSpanish = content == QLatin1String("Spanish:");
+            inLanguage = content == language + QLatin1Char(':');
             continue;
         }
-        if (!inSpanish || depth != 4)
+        if (!inLanguage || depth != 4)
             continue;
         const int separator = content.indexOf(QLatin1Char(':'));
         if (separator <= 0)
@@ -116,10 +122,12 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
             loaded.tenses = inlineList(content.mid(separator + 1));
         else if (key == QLatin1String("verbConjugations"))
             loaded.subjects = inlineList(content.mid(separator + 1));
+        else if (key.startsWith(QLatin1String("tenseSubjects-")))
+            loaded.tenseSubjects.insert(key.mid(14), inlineList(content.mid(separator + 1)));
     }
 
     if (loaded.verbs.isEmpty() || loaded.tenses.isEmpty() || loaded.subjects.isEmpty()) {
-        error = QStringLiteral("The Spanish verb list or practice spec is empty.");
+        error = QStringLiteral("The %1 verb list or practice spec is empty.").arg(language);
         return false;
     }
 
@@ -137,7 +145,7 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
         }
         loaded.english.insert(verb, english);
         for (const QString &tense : loaded.tenses) {
-            for (const QString &subject : loaded.subjects) {
+            for (const QString &subject : loaded.subjectsForTense(tense)) {
                 const QString key = QStringLiteral("Verbs-%1-%2").arg(tense, subject);
                 if (loaded.forms.value(key).value(verb).isEmpty()) {
                     error = QStringLiteral("Missing %1 for %2 in language.yaml.").arg(key, verb);
@@ -152,8 +160,13 @@ bool loadSpanishCatalog(VerbCatalog &catalog, QString &error)
     return true;
 }
 
-QString spanishTenseName(const QString &tense)
+QString tenseName(const QString &language, const QString &tense)
 {
+    if (language == QLatin1String("Russian")) {
+        if (tense == QLatin1String("present")) return QStringLiteral("Present");
+        if (tense == QLatin1String("past")) return QStringLiteral("Past");
+        if (tense == QLatin1String("future")) return QStringLiteral("Future (imperfective)");
+    }
     if (tense == QLatin1String("present")) return QStringLiteral("Present");
     if (tense == QLatin1String("present_cont")) return QStringLiteral("Present progressive");
     if (tense == QLatin1String("simple_past")) return QStringLiteral("Preterite");
@@ -168,8 +181,24 @@ QString spanishTenseName(const QString &tense)
     return label.replace(QLatin1Char('_'), QLatin1Char(' '));
 }
 
-QString spanishSubjectName(const QString &subject)
+QString subjectName(const QString &language, const QString &subject)
 {
+    if (language == QLatin1String("Russian")) {
+        if (subject == QLatin1String("1psing")) return QStringLiteral("я");
+        if (subject == QLatin1String("2psing")) return QStringLiteral("ты");
+        if (subject == QLatin1String("3psing")) return QStringLiteral("он / она / оно");
+        if (subject == QLatin1String("1psing_m")) return QStringLiteral("я (male speaker)");
+        if (subject == QLatin1String("1psing_f")) return QStringLiteral("я (female speaker)");
+        if (subject == QLatin1String("2psing_m")) return QStringLiteral("ты (male listener)");
+        if (subject == QLatin1String("2psing_f")) return QStringLiteral("ты (female listener)");
+        if (subject == QLatin1String("3psing_m")) return QStringLiteral("он");
+        if (subject == QLatin1String("3psing_f")) return QStringLiteral("она");
+        if (subject == QLatin1String("3psing_n")) return QStringLiteral("оно");
+        if (subject == QLatin1String("1ppl")) return QStringLiteral("мы");
+        if (subject == QLatin1String("2ppl")) return QStringLiteral("вы");
+        if (subject == QLatin1String("3ppl")) return QStringLiteral("они");
+        return subject;
+    }
     if (subject == QLatin1String("1psing")) return QStringLiteral("yo");
     if (subject == QLatin1String("1ppl")) return QStringLiteral("nosotros / nosotras");
     if (subject == QLatin1String("2pfam")) return QStringLiteral("tú");

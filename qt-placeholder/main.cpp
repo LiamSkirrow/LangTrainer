@@ -69,7 +69,8 @@ public:
 
         auto *languagePicker = new QComboBox;
         languagePicker->addItem("Select a language...");
-        languagePicker->addItem("Spanish (Español)");
+        languagePicker->addItem("Spanish (Español)", QStringLiteral("Spanish"));
+        languagePicker->addItem("Russian (Русский)", QStringLiteral("Russian"));
         languagePicker->setMinimumWidth(220);
 
         // A dedicated popup view and palette keep the choices readable on dark themes.
@@ -91,19 +92,24 @@ public:
         auto *selectionHint = new QLabel("Select a language to see its practice modes.");
         layout->addWidget(selectionHint);
 
-        auto *practiceGroup = createSpanishPracticeGroup();
-        practiceGroup->hide();
-        layout->addWidget(practiceGroup);
+        auto *spanishGroup = createSpanishPracticeGroup();
+        auto *russianGroup = createRussianPracticeGroup();
+        spanishGroup->hide();
+        russianGroup->hide();
+        layout->addWidget(spanishGroup);
+        layout->addWidget(russianGroup);
         layout->addStretch();
         setCentralWidget(central);
 
         connect(languagePicker, QOverload<int>::of(&QComboBox::currentIndexChanged),
-                this, [practiceGroup, selectionHint](int index) {
-                    const bool spanishSelected = index == 1;
-                    practiceGroup->setVisible(spanishSelected);
-                    selectionHint->setText(spanishSelected
-                        ? "Spanish is selected. Choose verbs and tenses to start conjugation practice."
-                        : "Select a language to see its practice modes.");
+                this, [languagePicker, spanishGroup, russianGroup, selectionHint](int) {
+                    const QString language = languagePicker->currentData().toString();
+                    spanishGroup->setVisible(language == QLatin1String("Spanish"));
+                    russianGroup->setVisible(language == QLatin1String("Russian"));
+                    selectionHint->setText(language.isEmpty()
+                        ? "Select a language to see its practice modes."
+                        : QStringLiteral("%1 is selected. Choose verbs and tenses to start conjugation practice.")
+                              .arg(language));
                 });
     }
 
@@ -118,7 +124,7 @@ private:
 
         auto *verbButton = addPracticeRow(grid, 0, "Verb conjugation",
             "Practise verb forms across people and tenses.", "Choose verbs...", true);
-        connect(verbButton, &QPushButton::clicked, this, [this] { startVerbPractice(); });
+        connect(verbButton, &QPushButton::clicked, this, [this] { startVerbPractice(QStringLiteral("Spanish")); });
         addPracticeRow(grid, 1, "Sentence practice",
             "Use words and grammar together in context.", "Practise", false);
         addPracticeRow(grid, 2, "Listening and speaking",
@@ -126,21 +132,41 @@ private:
         return group;
     }
 
-    void startVerbPractice()
+    QGroupBox *createRussianPracticeGroup()
+    {
+        auto *group = new QGroupBox("Russian practice modes");
+        auto *grid = new QGridLayout(group);
+        grid->setHorizontalSpacing(18);
+        grid->setVerticalSpacing(13);
+        grid->setColumnStretch(1, 1);
+
+        auto *verbButton = addPracticeRow(grid, 0, "Verb conjugation",
+            "Practise verb forms across people and tenses.", "Choose verbs...", true);
+        connect(verbButton, &QPushButton::clicked, this, [this] { startVerbPractice(QStringLiteral("Russian")); });
+        addPracticeRow(grid, 1, "Noun declension",
+            "Practise noun forms across Russian cases.", "Practise", false);
+        addPracticeRow(grid, 2, "Sentence practice",
+            "Use words and grammar together in context.", "Practise", false);
+        addPracticeRow(grid, 3, "Listening and speaking",
+            "Respond to spoken prompts.", "Practise", false);
+        return group;
+    }
+
+    void startVerbPractice(const QString &language)
     {
         VerbCatalog catalog;
         QString error;
-        if (!loadSpanishCatalog(catalog, error)) {
+        if (!loadVerbCatalog(language, catalog, error)) {
             QMessageBox::critical(this, "Vocabulary error", error);
             return;
         }
 
         SelectionDialogConfig verbConfig;
-        verbConfig.title = "Choose Spanish verbs";
+        verbConfig.title = QStringLiteral("Choose %1 verbs").arg(language);
         verbConfig.instruction = "Check verbs to practise. Highlight one to view its forms.";
         verbConfig.searchPlaceholder = "Search verbs or English meanings...";
         verbConfig.itemName = "verbs";
-        verbConfig.settingsKey = "Spanish/verbConjugation/selectedVerbs";
+        verbConfig.settingsKey = language + QStringLiteral("/verbConjugation/selectedVerbs");
         verbConfig.continueLabel = "Next: tenses";
         verbConfig.detailsLabel = "View forms...";
         verbConfig.showDetails = [&catalog](const QString &verb, QWidget *parent) {
@@ -158,14 +184,14 @@ private:
             return;
 
         SelectionDialogConfig tenseConfig;
-        tenseConfig.title = "Choose Spanish tenses";
+        tenseConfig.title = QStringLiteral("Choose %1 tenses").arg(language);
         tenseConfig.instruction = "Choose the tenses for this practice session.";
         tenseConfig.searchPlaceholder = "Search tenses...";
         tenseConfig.itemName = "tenses";
-        tenseConfig.settingsKey = "Spanish/verbConjugation/selectedTenses";
+        tenseConfig.settingsKey = language + QStringLiteral("/verbConjugation/selectedTenses");
         tenseConfig.continueLabel = "Start practice";
         for (const QString &tense : catalog.tenses)
-            tenseConfig.options.append({tense, spanishTenseName(tense)});
+            tenseConfig.options.append({tense, tenseName(language, tense)});
         SelectionDialog tenses(tenseConfig, this);
         if (tenses.exec() != QDialog::Accepted)
             return;
@@ -184,15 +210,20 @@ int main(int argc, char *argv[])
     QApplication::setApplicationName("LangTrainer");
 
     if (app.arguments().contains(QStringLiteral("--check-data"))) {
-        VerbCatalog catalog;
-        QString error;
-        if (!loadSpanishCatalog(catalog, error)) {
-            qCritical().noquote() << error;
-            return 1;
+        for (const QString &language : {QStringLiteral("Spanish"), QStringLiteral("Russian")}) {
+            VerbCatalog catalog;
+            QString error;
+            if (!loadVerbCatalog(language, catalog, error)) {
+                qCritical().noquote() << error;
+                return 1;
+            }
+            int cardsPerVerb = 0;
+            for (const QString &tense : catalog.tenses)
+                cardsPerVerb += catalog.subjectsForTense(tense).size();
+            qInfo().noquote() << QStringLiteral("Loaded %1 %2 verbs, %3 tenses, and %4 cards per verb.")
+                                     .arg(catalog.verbs.size()).arg(language)
+                                     .arg(catalog.tenses.size()).arg(cardsPerVerb);
         }
-        qInfo().noquote() << QStringLiteral("Loaded %1 Spanish verbs, %2 tenses, and %3 subjects.")
-                                 .arg(catalog.verbs.size()).arg(catalog.tenses.size())
-                                 .arg(catalog.subjects.size());
         return 0;
     }
 

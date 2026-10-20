@@ -34,6 +34,7 @@ private:
     void updateScore();
     void finishSession();
 
+    QString language_;
     QVector<Prompt> prompts_;
     QVector<IncorrectCard> incorrectCards_;
     int questionIndex_ = 0;

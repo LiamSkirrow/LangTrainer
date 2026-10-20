@@ -33,14 +33,14 @@ VerbFormsDialog::VerbFormsDialog(const VerbCatalog &catalog, const QString &verb
 
     for (const QString &tense : catalog.tenses) {
         auto *tenseItem = new QTreeWidgetItem(forms);
-        tenseItem->setText(0, spanishTenseName(tense));
+        tenseItem->setText(0, tenseName(catalog.language, tense));
         QFont tenseFont = tenseItem->font(0);
         tenseFont.setBold(true);
         tenseItem->setFont(0, tenseFont);
 
-        for (const QString &subject : catalog.subjects) {
+        for (const QString &subject : catalog.subjectsForTense(tense)) {
             auto *subjectItem = new QTreeWidgetItem(tenseItem);
-            subjectItem->setText(0, spanishSubjectName(subject));
+            subjectItem->setText(0, subjectName(catalog.language, subject));
             subjectItem->setText(1, catalog.forms.value(
                 QStringLiteral("Verbs-%1-%2").arg(tense, subject)).value(verb));
         }
