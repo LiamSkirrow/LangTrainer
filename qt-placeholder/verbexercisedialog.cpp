@@ -1,4 +1,5 @@
 #include "verbexercisedialog.h"
+#include "russiankeyboard.h"
 
 #include <QDialogButtonBox>
 #include <QFont>
@@ -72,45 +73,27 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
         : QStringLiteral("Type the Spanish form (include accents)"));
     layout->addWidget(answerEdit_);
 
-    characterRow_ = new QWidget;
-    auto *keyboardLayout = new QVBoxLayout(characterRow_);
-    keyboardLayout->setContentsMargins(0, 0, 0, 0);
-    keyboardLayout->setSpacing(2);
-    const QStringList keyRows = language_ == QLatin1String("Russian")
-        ? QStringList{QStringLiteral("йцукенгшщзхъ"), QStringLiteral("фывапролджэ"),
-                      QStringLiteral("ячсмитьбюё")}
-        : QStringList{QStringLiteral("áéíóúüñ")};
-    for (int row = 0; row < keyRows.size(); ++row) {
-        auto *keyLayout = new QHBoxLayout;
-        keyLayout->setSpacing(3);
-        if (row == 0)
-            keyLayout->addWidget(new QLabel("Insert:"));
-        else
-            keyLayout->addSpacing(44);
-        for (const QChar character : keyRows.at(row)) {
+    if (language_ == QLatin1String("Russian")) {
+        characterRow_ = createRussianKeyboard(answerEdit_, this);
+    } else {
+        characterRow_ = new QWidget;
+        auto *characterLayout = new QHBoxLayout(characterRow_);
+        characterLayout->setContentsMargins(0, 0, 0, 0);
+        characterLayout->setSpacing(4);
+        characterLayout->addWidget(new QLabel("Insert:"));
+        for (const QChar character : QStringLiteral("áéíóúüñ")) {
             const QString letter(character);
             auto *button = new QToolButton(characterRow_);
             button->setText(letter);
             button->setToolTip(QStringLiteral("Insert %1").arg(letter));
-            button->setFixedWidth(language_ == QLatin1String("Russian") ? 29 : 34);
-            keyLayout->addWidget(button);
+            button->setFixedWidth(34);
+            characterLayout->addWidget(button);
             connect(button, &QToolButton::clicked, this, [this, letter] {
                 answerEdit_->insert(letter);
                 answerEdit_->setFocus();
             });
         }
-        if (language_ == QLatin1String("Russian") && row == keyRows.size() - 1) {
-            auto *spaceButton = new QToolButton(characterRow_);
-            spaceButton->setText("Space");
-            spaceButton->setToolTip("Insert a space between words");
-            keyLayout->addWidget(spaceButton);
-            connect(spaceButton, &QToolButton::clicked, this, [this] {
-                answerEdit_->insert(QStringLiteral(" "));
-                answerEdit_->setFocus();
-            });
-        }
-        keyLayout->addStretch();
-        keyboardLayout->addLayout(keyLayout);
+        characterLayout->addStretch();
     }
     layout->addWidget(characterRow_);
 

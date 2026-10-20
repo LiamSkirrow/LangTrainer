@@ -2050,6 +2050,256 @@ languages:
       volver: "habrían vuelto"
   German:
   Russian:
+    # Starter noun deck: singular forms of inanimate nouns plus animate друг.
+    Nouns:
+      - дом
+      - стол
+      - город
+      - книга
+      - школа
+      - комната
+      - море
+      - слово
+      - друг
+      - ночь
+    Nouns-en:
+      дом: "house"
+      стол: "table"
+      город: "city"
+      книга: "book"
+      школа: "school"
+      комната: "room"
+      море: "sea"
+      слово: "word"
+      друг: "friend"
+      ночь: "night"
+    Nouns-gender:
+      дом: m
+      стол: m
+      город: m
+      книга: f
+      школа: f
+      комната: f
+      море: n
+      слово: n
+      друг: m
+      ночь: f
+    Nouns-singular-nominative:
+      дом: "дом"
+      стол: "стол"
+      город: "город"
+      книга: "книга"
+      школа: "школа"
+      комната: "комната"
+      море: "море"
+      слово: "слово"
+      друг: "друг"
+      ночь: "ночь"
+    Nouns-singular-genitive:
+      дом: "дома"
+      стол: "стола"
+      город: "города"
+      книга: "книги"
+      школа: "школы"
+      комната: "комнаты"
+      море: "моря"
+      слово: "слова"
+      друг: "друга"
+      ночь: "ночи"
+    Nouns-singular-dative:
+      дом: "дому"
+      стол: "столу"
+      город: "городу"
+      книга: "книге"
+      школа: "школе"
+      комната: "комнате"
+      море: "морю"
+      слово: "слову"
+      друг: "другу"
+      ночь: "ночи"
+    Nouns-singular-accusative:
+      дом: "дом"
+      стол: "стол"
+      город: "город"
+      книга: "книгу"
+      школа: "школу"
+      комната: "комнату"
+      море: "море"
+      слово: "слово"
+      друг: "друга"
+      ночь: "ночь"
+    Nouns-singular-instrumental:
+      дом: "домом"
+      стол: "столом"
+      город: "городом"
+      книга: "книгой"
+      школа: "школой"
+      комната: "комнатой"
+      море: "морем"
+      слово: "словом"
+      друг: "другом"
+      ночь: "ночью"
+    Nouns-singular-prepositional:
+      дом: "доме"
+      стол: "столе"
+      город: "городе"
+      книга: "книге"
+      школа: "школе"
+      комната: "комнате"
+      море: "море"
+      слово: "слове"
+      друг: "друге"
+      ночь: "ночи"
+    # Each entry pairs one everyday meaning with the case it governs.
+    # Surface forms may recur with different meanings and cases.
+    Prepositions:
+      - в-to
+      - в-place
+      - на-to
+      - на-place
+      - с-with
+      - с-from
+      - у
+      - из
+      - от
+      - к
+      - по
+      - о
+      - за-to
+      - за-place
+      - под-to
+      - под-place
+      - без
+      - для
+      - до
+      - после
+      - перед
+      - над
+      - между
+      - рядом-с
+      - через
+      - про
+      - около
+      - возле
+      - вокруг
+      - вместо
+      - кроме
+      - из-за
+      - из-под
+      - мимо
+      - против
+      - сквозь
+    Prepositions-ru:
+      в-to: "в"
+      в-place: "в"
+      на-to: "на"
+      на-place: "на"
+      с-with: "с / со"
+      с-from: "с / со"
+      у: "у"
+      из: "из"
+      от: "от"
+      к: "к"
+      по: "по"
+      о: "о"
+      за-to: "за"
+      за-place: "за"
+      под-to: "под"
+      под-place: "под"
+      без: "без"
+      для: "для"
+      до: "до"
+      после: "после"
+      перед: "перед"
+      над: "над"
+      между: "между"
+      рядом-с: "рядом с / со"
+      через: "через"
+      про: "про"
+      около: "около"
+      возле: "возле"
+      вокруг: "вокруг"
+      вместо: "вместо"
+      кроме: "кроме"
+      из-за: "из-за"
+      из-под: "из-под"
+      мимо: "мимо"
+      против: "против"
+      сквозь: "сквозь"
+    Prepositions-en:
+      в-to: "into / to (movement)"
+      в-place: "in / at (location)"
+      на-to: "onto / to (movement)"
+      на-place: "on / at (location)"
+      с-with: "with (accompaniment)"
+      с-from: "from / off (source)"
+      у: "by / at"
+      из: "out of / from inside"
+      от: "away from"
+      к: "toward / to"
+      по: "along / around"
+      о: "about"
+      за-to: "to behind (movement)"
+      за-place: "behind / at (location)"
+      под-to: "to under (movement)"
+      под-place: "under (location)"
+      без: "without"
+      для: "for"
+      до: "up to / before"
+      после: "after"
+      перед: "in front of / before"
+      над: "above / over"
+      между: "between ... and ... (first noun)"
+      рядом-с: "next to"
+      через: "through / across"
+      про: "about (informal)"
+      около: "near"
+      возле: "near / beside"
+      вокруг: "around"
+      вместо: "instead of"
+      кроме: "except for"
+      из-за: "from behind / because of"
+      из-под: "from under"
+      мимо: "past"
+      против: "opposite / against"
+      сквозь: "through"
+    Prepositions-case:
+      в-to: accusative
+      в-place: prepositional
+      на-to: accusative
+      на-place: prepositional
+      с-with: instrumental
+      с-from: genitive
+      у: genitive
+      из: genitive
+      от: genitive
+      к: dative
+      по: dative
+      о: prepositional
+      за-to: accusative
+      за-place: instrumental
+      под-to: accusative
+      под-place: instrumental
+      без: genitive
+      для: genitive
+      до: genitive
+      после: genitive
+      перед: instrumental
+      над: instrumental
+      между: instrumental
+      рядом-с: instrumental
+      через: accusative
+      про: accusative
+      около: genitive
+      возле: genitive
+      вокруг: genitive
+      вместо: genitive
+      кроме: genitive
+      из-за: genitive
+      из-под: genitive
+      мимо: genitive
+      против: genitive
+      сквозь: accusative
     # Starter set: imperfective verbs, with compound future forms.
     Verbs:
       - делать

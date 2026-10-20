@@ -1,4 +1,7 @@
 #include "verbdata.h"
+#include "noundata.h"
+#include "nounformsdialog.h"
+#include "nounexercisedialog.h"
 #include "verbexercisedialog.h"
 #include "verbformsdialog.h"
 #include "selectiondialog.h"
@@ -108,7 +111,7 @@ public:
                     russianGroup->setVisible(language == QLatin1String("Russian"));
                     selectionHint->setText(language.isEmpty()
                         ? "Select a language to see its practice modes."
-                        : QStringLiteral("%1 is selected. Choose verbs and tenses to start conjugation practice.")
+                        : QStringLiteral("%1 is selected. Choose a practice mode below.")
                               .arg(language));
                 });
     }
@@ -143,11 +146,15 @@ private:
         auto *verbButton = addPracticeRow(grid, 0, "Verb conjugation",
             "Practise verb forms across people and tenses.", "Choose verbs...", true);
         connect(verbButton, &QPushButton::clicked, this, [this] { startVerbPractice(QStringLiteral("Russian")); });
-        addPracticeRow(grid, 1, "Noun declension",
-            "Practise noun forms across Russian cases.", "Practise", false);
-        addPracticeRow(grid, 2, "Sentence practice",
+        auto *nounButton = addPracticeRow(grid, 1, "Noun declension",
+            "Practise singular noun forms across Russian cases.", "Choose nouns...", true);
+        connect(nounButton, &QPushButton::clicked, this, [this] { startNounPractice(); });
+        auto *prepositionButton = addPracticeRow(grid, 2, "Prepositions",
+            "Choose the noun form required by a preposition.", "Choose nouns...", true);
+        connect(prepositionButton, &QPushButton::clicked, this, [this] { startPrepositionPractice(); });
+        addPracticeRow(grid, 3, "Sentence practice",
             "Use words and grammar together in context.", "Practise", false);
-        addPracticeRow(grid, 3, "Listening and speaking",
+        addPracticeRow(grid, 4, "Listening and speaking",
             "Respond to spoken prompts.", "Practise", false);
         return group;
     }
@@ -199,6 +206,97 @@ private:
         VerbExerciseDialog exercise(catalog, verbs.selectedValues(), tenses.selectedValues(), this);
         exercise.exec();
     }
+
+    bool chooseRussianNouns(const NounCatalog &catalog, const QString &modeKey,
+                            const QString &continueLabel, QStringList &selected)
+    {
+        SelectionDialogConfig config;
+        config.title = "Choose Russian nouns";
+        config.instruction = "Check nouns to practise. Highlight one to view its forms.";
+        config.searchPlaceholder = "Search nouns or English meanings...";
+        config.itemName = "nouns";
+        config.settingsKey = QStringLiteral("Russian/%1/selectedNouns").arg(modeKey);
+        config.continueLabel = continueLabel;
+        config.detailsLabel = "View forms...";
+        config.showDetails = [&catalog](const QString &noun, QWidget *parent) {
+            NounFormsDialog forms(catalog, noun, parent);
+            forms.exec();
+        };
+        QStringList sortedNouns = catalog.nouns;
+        sortedNouns.sort(Qt::CaseInsensitive);
+        for (const QString &noun : sortedNouns)
+            config.options.append({noun, QStringLiteral("%1 — %2")
+                                             .arg(noun, catalog.english.value(noun))});
+        SelectionDialog nouns(config, this);
+        if (nouns.exec() != QDialog::Accepted)
+            return false;
+        selected = nouns.selectedValues();
+        return true;
+    }
+
+    void startNounPractice()
+    {
+        NounCatalog catalog;
+        QString error;
+        if (!loadRussianNounCatalog(catalog, error)) {
+            QMessageBox::critical(this, "Vocabulary error", error);
+            return;
+        }
+        QStringList selectedNouns;
+        if (!chooseRussianNouns(catalog, QStringLiteral("nounDeclension"),
+                                QStringLiteral("Next: cases"), selectedNouns))
+            return;
+
+        SelectionDialogConfig caseConfig;
+        caseConfig.title = "Choose Russian cases";
+        caseConfig.instruction = "Choose the cases for this practice session.";
+        caseConfig.searchPlaceholder = "Search cases...";
+        caseConfig.itemName = "cases";
+        caseConfig.settingsKey = "Russian/nounDeclension/selectedCases";
+        caseConfig.continueLabel = "Start practice";
+        for (const QString &caseKey : catalog.cases)
+            caseConfig.options.append({caseKey, russianCaseName(caseKey)});
+        SelectionDialog cases(caseConfig, this);
+        if (cases.exec() != QDialog::Accepted)
+            return;
+
+        NounExerciseDialog exercise(catalog, selectedNouns, cases.selectedValues(),
+                                    NounExerciseDialog::Mode::Declension, this);
+        exercise.exec();
+    }
+
+    void startPrepositionPractice()
+    {
+        NounCatalog catalog;
+        QString error;
+        if (!loadRussianNounCatalog(catalog, error)) {
+            QMessageBox::critical(this, "Vocabulary error", error);
+            return;
+        }
+        QStringList selectedNouns;
+        if (!chooseRussianNouns(catalog, QStringLiteral("prepositions"),
+                                QStringLiteral("Next: prepositions"), selectedNouns))
+            return;
+
+        SelectionDialogConfig prepConfig;
+        prepConfig.title = "Choose Russian prepositions";
+        prepConfig.instruction = "Choose prepositions. The required case is revealed after each answer.";
+        prepConfig.searchPlaceholder = "Search prepositions or meanings...";
+        prepConfig.itemName = "prepositions";
+        prepConfig.settingsKey = "Russian/prepositions/selectedPrepositions";
+        prepConfig.continueLabel = "Start practice";
+        for (const QString &preposition : catalog.prepositions)
+            prepConfig.options.append({preposition, QStringLiteral("%1 — %2")
+                                           .arg(catalog.prepositionRussian.value(preposition),
+                                                catalog.prepositionEnglish.value(preposition))});
+        SelectionDialog prepositions(prepConfig, this);
+        if (prepositions.exec() != QDialog::Accepted)
+            return;
+
+        NounExerciseDialog exercise(catalog, selectedNouns, prepositions.selectedValues(),
+                                    NounExerciseDialog::Mode::Prepositions, this);
+        exercise.exec();
+    }
 };
 
 } // namespace
@@ -224,6 +322,15 @@ int main(int argc, char *argv[])
                                      .arg(catalog.verbs.size()).arg(language)
                                      .arg(catalog.tenses.size()).arg(cardsPerVerb);
         }
+        NounCatalog nouns;
+        QString error;
+        if (!loadRussianNounCatalog(nouns, error)) {
+            qCritical().noquote() << error;
+            return 1;
+        }
+        qInfo().noquote() << QStringLiteral("Loaded %1 Russian nouns, %2 cases, and %3 prepositions.")
+                                 .arg(nouns.nouns.size()).arg(nouns.cases.size())
+                                 .arg(nouns.prepositions.size());
         return 0;
     }
 

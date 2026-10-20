@@ -13,6 +13,14 @@ add_executable(LangTrainer
     main.cpp
     verbdata.cpp
     verbdata.h
+    noundata.cpp
+    noundata.h
+    russiankeyboard.cpp
+    russiankeyboard.h
+    nounformsdialog.cpp
+    nounformsdialog.h
+    nounexercisedialog.cpp
+    nounexercisedialog.h
     selectiondialog.cpp
     selectiondialog.h
     verbformsdialog.cpp
