@@ -10,6 +10,14 @@ Note: this is not a spaced repetition program, as soon as anything tries to do s
 <img width="778" height="589" alt="image" src="https://github.com/user-attachments/assets/4a12bdd2-8d3b-4c04-939b-1631c1f5a384" />
 <img width="495" height="377" alt="image" src="https://github.com/user-attachments/assets/51622114-5e91-4b09-97ab-ec8bb5d13813" />
 
+### Supported Languages and Features (work in-progress)
+    
+| Spanish  | Russian |
+| ------------- | ------------- |
+| Verb conjugations  | Verb conjugations  |
+|                    | Noun declensions  |
+|                    | Prepositions with required cases  |
+
 ### Develepment Thoughts
 - Originally, I was planning on encoding the generic grammar structure of a sentence across the supported languages, however the value proposition of this has now declined given I can just Codex-generate arbitrarily many sentences, either with/without the user stored vocab. It just seems like extra effort to generate sentences using the existing vocab, constrained to a rigid precoded grammar template... *Need to think more about this*
   - I'm tempted to just enter in a couple dozen/hundred example sentences at various difficulty levels and just drill those instead.
