@@ -3,7 +3,7 @@
 _Disclaimer: I'm reviving this project with Codex, a lot of code and UI work are AI generated_
 
 ## Overview
-This program is a C++/QT app that can be used to drill verb conjugations, noun declensions, prepositions... basically anything that you may want to outright practice in a tight loop in order to improve at your target language. For example, if you're learning Spanish, you may want to test how well you know your verb conjugations for the most common verbs across various tenses. LangTrainer allows you to do this with a custom selection of verbs, which over time you'll eventually master. 
+This program is a C++/QT app that can be used to drill verb conjugations, noun declensions, prepositions... basically anything that you may want to outright practice in a tight loop in order to improve at your target language. For example, if you're learning Spanish, you may want to test how well you know your verb conjugations for the most common verbs across various tenses. LangTrainer allows you to do this with a custom selection of verbs, which over time you'll eventually master. This isn't intended to be a 'one resource to rule them all' type thing, it's not a 'course', it's simply a tool that can be used to automate self-testing of various repetitive aspects of a language.
 
 Note: this is not a spaced repetition program, as soon as anything tries to do spaced repetition, it just becomes a worse Anki. The only reason this program exists is because it *isn't* spaced repetition. Simply drill your verb conjugations to your heart's content.
 
@@ -18,7 +18,9 @@ Note: this is not a spaced repetition program, as soon as anything tries to do s
 |                    | Noun declensions  |
 |                    | Prepositions with required cases  |
 
-### Develepment Thoughts
+### Development Notes
+- Currently, I'm supporting specific languages that are encoded in the `spec.yaml` and `language.yaml` configs, however my aim is to make it completely agnostic as to which language the user is studying, to the extent that a wizard can allow for the creation of new languages, with the YAML configs being updated by the app, not the user. Currently, the `spec.yaml` file has to be modified directly.
+  - however for this, I need to strip out my own specificity. I'm learning Russian and Spanish, but that shouldn't be reflected in the state of the app as it appears on GitHub, need to figure out how to allow myself to represent the app generically here in the cloud, but also implement my own settings and configurations in my own local instance of the app.
 - Originally, I was planning on encoding the generic grammar structure of a sentence across the supported languages, however the value proposition of this has now declined given I can just Codex-generate arbitrarily many sentences, either with/without the user stored vocab. It just seems like extra effort to generate sentences using the existing vocab, constrained to a rigid precoded grammar template... *Need to think more about this*
   - I'm tempted to just enter in a couple dozen/hundred example sentences at various difficulty levels and just drill those instead.
 - TTS usecase will probably be super easy to implement now, give this some more thought. Maybe Pimsleur-like question/command prompting like "say that blah blah", "ask whether they want to blah blah blah"
