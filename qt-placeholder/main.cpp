@@ -5,6 +5,9 @@
 #include "verbexercisedialog.h"
 #include "verbformsdialog.h"
 #include "selectiondialog.h"
+#include "pronoundata.h"
+#include "pronounformsdialog.h"
+#include "pronounexercisedialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -50,8 +53,8 @@ public:
     MainWindow()
     {
         setWindowTitle("LangTrainer");
-        resize(780, 560);
-        setMinimumSize(650, 500);
+        resize(780, 620);
+        setMinimumSize(650, 540);
 
         auto *central = new QWidget(this);
         auto *layout = new QVBoxLayout(central);
@@ -178,14 +181,69 @@ private:
         auto *nounButton = addPracticeRow(grid, 1, "Noun declension",
             "Practise articles and noun forms in every case and number.", "Choose nouns...", true);
         connect(nounButton, &QPushButton::clicked, this, [this] { startNounPractice(QStringLiteral("German")); });
-        auto *prepositionButton = addPracticeRow(grid, 2, "Prepositions",
+        auto *pronounButton = addPracticeRow(grid, 2, "Pronoun declension",
+            "Practise personal and possessive pronouns in all four cases.", "Choose pronouns...", true);
+        connect(pronounButton, &QPushButton::clicked, this, [this] { startPronounPractice(); });
+        auto *prepositionButton = addPracticeRow(grid, 3, "Prepositions",
             "Choose the noun phrase required by each preposition.", "Choose nouns...", true);
         connect(prepositionButton, &QPushButton::clicked, this, [this] { startPrepositionPractice(QStringLiteral("German")); });
-        addPracticeRow(grid, 3, "Sentence practice",
+        addPracticeRow(grid, 4, "Sentence practice",
             "Use words and grammar together in context.", "Practise", false);
-        addPracticeRow(grid, 4, "Listening and speaking",
+        addPracticeRow(grid, 5, "Listening and speaking",
             "Respond to spoken prompts.", "Practise", false);
         return group;
+    }
+
+    void startPronounPractice()
+    {
+        PronounCatalog catalog;
+        QString error;
+        if (!loadGermanPronounCatalog(catalog, error)) {
+            QMessageBox::critical(this, "Vocabulary error", error);
+            return;
+        }
+
+        SelectionDialogConfig pronounConfig;
+        pronounConfig.title = "Choose German pronouns";
+        pronounConfig.instruction =
+            "Choose personal or possessive pronouns. Highlight one to view its forms. "
+            "Possessive cards cover forms before a noun and standalone forms.";
+        pronounConfig.searchPlaceholder = "Search pronouns or English meanings...";
+        pronounConfig.itemName = "pronouns";
+        pronounConfig.settingsKey = "German/pronounDeclension/selectedPronouns";
+        pronounConfig.continueLabel = "Next: cases";
+        pronounConfig.detailsLabel = "View forms...";
+        pronounConfig.showDetails = [&catalog](const QString &pronoun, QWidget *parent) {
+            PronounFormsDialog forms(catalog, pronoun, parent);
+            forms.exec();
+        };
+        for (const QString &pronoun : catalog.pronouns) {
+            const QString family = catalog.kind.value(pronoun) == QLatin1String("personal")
+                ? QStringLiteral("Personal") : QStringLiteral("Possessive");
+            pronounConfig.options.append({pronoun,
+                QStringLiteral("%1 · %2").arg(family, catalog.displayName(pronoun))});
+        }
+        SelectionDialog pronouns(pronounConfig, this);
+        if (pronouns.exec() != QDialog::Accepted)
+            return;
+
+        SelectionDialogConfig caseConfig;
+        caseConfig.title = "Choose German pronoun cases";
+        caseConfig.instruction =
+            "Choose cases to practise. Genitive personal pronouns are rare in everyday speech.";
+        caseConfig.searchPlaceholder = "Search cases...";
+        caseConfig.itemName = "cases";
+        caseConfig.settingsKey = "German/pronounDeclension/selectedCases";
+        caseConfig.continueLabel = "Start practice";
+        for (const QString &caseKey : catalog.cases)
+            caseConfig.options.append({caseKey, caseName(caseKey)});
+        SelectionDialog cases(caseConfig, this);
+        if (cases.exec() != QDialog::Accepted)
+            return;
+
+        PronounExerciseDialog exercise(catalog, pronouns.selectedValues(),
+                                       cases.selectedValues(), this);
+        exercise.exec();
     }
 
     void startVerbPractice(const QString &language)
@@ -383,6 +441,14 @@ int main(int argc, char *argv[])
                                      .arg(nouns.nouns.size()).arg(language).arg(nouns.cases.size())
                                      .arg(nouns.numbers.size()).arg(nouns.prepositions.size());
         }
+        PronounCatalog pronouns;
+        QString pronounError;
+        if (!loadGermanPronounCatalog(pronouns, pronounError)) {
+            qCritical().noquote() << pronounError;
+            return 1;
+        }
+        qInfo().noquote() << QStringLiteral("Loaded %1 German pronoun bases across %2 cases.")
+                                 .arg(pronouns.pronouns.size()).arg(pronouns.cases.size());
         return 0;
     }
 

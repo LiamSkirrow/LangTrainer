@@ -17,6 +17,7 @@ Note: this is not a spaced repetition program, as soon as anything tries to do s
 | Verb conjugations | Verb conjugations | Verb conjugations |
 | | Noun declensions | Noun declensions (singular and plural) |
 | | Prepositions with required cases | Prepositions with required cases |
+| | | Personal and possessive pronoun declensions |
 
 ### Development Notes
 - Currently, I'm supporting specific languages that are encoded in the `spec.yaml` and `language.yaml` configs, however my aim is to make it completely agnostic as to which language the user is studying, to the extent that a wizard can allow for the creation of new languages, with the YAML configs being updated by the app, not the user. Currently, the `spec.yaml` file has to be modified directly.

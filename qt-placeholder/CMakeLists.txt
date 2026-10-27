@@ -23,6 +23,12 @@ add_executable(LangTrainer
     nounformsdialog.h
     nounexercisedialog.cpp
     nounexercisedialog.h
+    pronoundata.cpp
+    pronoundata.h
+    pronounformsdialog.cpp
+    pronounformsdialog.h
+    pronounexercisedialog.cpp
+    pronounexercisedialog.h
     selectiondialog.cpp
     selectiondialog.h
     verbformsdialog.cpp

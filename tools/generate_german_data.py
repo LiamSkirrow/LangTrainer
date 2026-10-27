@@ -176,6 +176,62 @@ for spelling, location, destination in [
     prepositions.append((spelling + "-place", spelling, location, "dative"))
     prepositions.append((spelling + "-to", spelling, destination, "accusative"))
 
+# Pronoun rows are stored alongside the other German vocabulary. The four
+# personal genitives are uncommon in conversation, but belong to the full
+# paradigm. Each possessive has both before-noun and standalone forms.
+# id, lemma, English meaning, nominative, accusative, dative, genitive
+personal_pronouns = [
+    ("personal-ich", "ich", "I (first person singular)", "ich", "mich", "mir", "meiner"),
+    ("personal-du", "du", "you (informal singular)", "du", "dich", "dir", "deiner"),
+    ("personal-er", "er", "he / it (masculine)", "er", "ihn", "ihm", "seiner"),
+    ("personal-sie-f", "sie", "she / it (feminine)", "sie", "sie", "ihr", "ihrer"),
+    ("personal-es", "es", "it (neuter)", "es", "es", "ihm", "seiner"),
+    ("personal-wir", "wir", "we", "wir", "uns", "uns", "unser"),
+    ("personal-ihr", "ihr", "you (informal plural)", "ihr", "euch", "euch", "euer"),
+    ("personal-sie-pl", "sie", "they", "sie", "sie", "ihnen", "ihrer"),
+    ("personal-Sie", "Sie", "you (formal singular or plural)", "Sie", "Sie", "Ihnen", "Ihrer"),
+]
+
+# id, lemma, English meaning, suffixed stem, unsuffixed form.
+possessive_pronouns = [
+    ("possessive-ich", "mein", "my / mine (owner: I)", "mein", "mein"),
+    ("possessive-du", "dein", "your / yours (owner: informal singular you)", "dein", "dein"),
+    ("possessive-er", "sein", "his (owner: he)", "sein", "sein"),
+    ("possessive-sie-f", "ihr", "her / hers (owner: she)", "ihr", "ihr"),
+    ("possessive-es", "sein", "its (owner: it)", "sein", "sein"),
+    ("possessive-wir", "unser", "our / ours (owner: we)", "unser", "unser"),
+    ("possessive-ihr", "euer", "your / yours (owner: informal plural you)", "eur", "euer"),
+    ("possessive-sie-pl", "ihr", "their / theirs (owner: they)", "ihr", "ihr"),
+    ("possessive-Sie", "Ihr", "your / yours (owner: formal you)", "Ihr", "Ihr"),
+]
+
+pronoun_cases = ("nominative", "accusative", "dative", "genitive")
+referents = ("m", "f", "n", "pl")
+possessive_endings = {
+    "m": {"nominative": "er", "accusative": "en", "dative": "em", "genitive": "es"},
+    "f": {"nominative": "e", "accusative": "e", "dative": "er", "genitive": "er"},
+    "n": {"nominative": "s", "accusative": "s", "dative": "em", "genitive": "es"},
+    "pl": {"nominative": "e", "accusative": "e", "dative": "en", "genitive": "er"},
+}
+
+
+def possessive_form(stem, unsuffixed, use, referent, case):
+    if use == "before" and referent in ("m", "n") and case == "nominative":
+        return unsuffixed
+    if use == "before" and referent == "n" and case == "accusative":
+        return unsuffixed
+    if use == "alone" and referent == "n" and case in ("nominative", "accusative"):
+        # Short and full forms are both accepted where both are established.
+        if stem in ("mein", "dein", "sein"):
+            return stem + "s|" + stem + "es"
+        if stem in ("ihr", "Ihr"):
+            return stem + "s|" + stem + "es"
+        if stem == "unser":
+            return "unseres"
+        if stem == "eur":
+            return "eures"
+    return stem + possessive_endings[referent][case]
+
 
 def quote(value):
     return '"' + value.replace('"', '\\"') + '"'
@@ -245,6 +301,23 @@ def generate():
     mapping(lines, "Prepositions-de", ((key, spelling) for key, spelling, *_ in prepositions))
     mapping(lines, "Prepositions-en", ((key, meaning) for key, _, meaning, _ in prepositions))
     mapping(lines, "Prepositions-case", ((key, case) for key, _, _, case in prepositions))
+
+    lines.extend(["    # Personal and possessive paradigms. A pipe separates accepted variants.",
+                  "    Pronouns:"])
+    lines.extend(f"      - {entry[0]}" for entry in personal_pronouns + possessive_pronouns)
+    mapping(lines, "Pronouns-kind", ((entry[0], "personal") for entry in personal_pronouns))
+    lines.extend(f"      {entry[0]}: {quote('possessive')}" for entry in possessive_pronouns)
+    mapping(lines, "Pronouns-lemma", ((entry[0], entry[1]) for entry in personal_pronouns + possessive_pronouns))
+    mapping(lines, "Pronouns-en", ((entry[0], entry[2]) for entry in personal_pronouns + possessive_pronouns))
+    for case_index, case in enumerate(pronoun_cases, start=3):
+        mapping(lines, f"Pronouns-personal-{case}",
+                ((entry[0], entry[case_index]) for entry in personal_pronouns))
+    for use in ("before", "alone"):
+        for referent in referents:
+            for case in pronoun_cases:
+                mapping(lines, f"Pronouns-{use}-{referent}-{case}",
+                        ((entry[0], possessive_form(entry[3], entry[4], use, referent, case))
+                         for entry in possessive_pronouns))
     return "\n".join(lines) + "\n"
 
 
@@ -255,4 +328,5 @@ if __name__ == "__main__":
     end = text.index("  Russian:\n", start)
     path.write_text(text[:start] + generate() + text[end:], encoding="utf-8")
     print(f"Wrote {len(verbs)} verbs ({len(separable)} separable), "
-          f"{len(nouns)} nouns, and {len(prepositions)} preposition meanings.")
+          f"{len(nouns)} nouns, {len(prepositions)} preposition meanings, and "
+          f"{len(personal_pronouns) + len(possessive_pronouns)} pronoun bases.")
