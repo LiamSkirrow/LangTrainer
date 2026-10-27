@@ -162,6 +162,12 @@ bool loadVerbCatalog(const QString &language, VerbCatalog &catalog, QString &err
 
 QString tenseName(const QString &language, const QString &tense)
 {
+    if (language == QLatin1String("German")) {
+        if (tense == QLatin1String("present")) return QStringLiteral("Present (Präsens)");
+        if (tense == QLatin1String("simple_past")) return QStringLiteral("Simple past (Präteritum)");
+        if (tense == QLatin1String("pres_perf")) return QStringLiteral("Perfect (Perfekt)");
+        if (tense == QLatin1String("future")) return QStringLiteral("Future I (Futur I)");
+    }
     if (language == QLatin1String("Russian")) {
         if (tense == QLatin1String("present")) return QStringLiteral("Present");
         if (tense == QLatin1String("past")) return QStringLiteral("Past");
@@ -183,6 +189,17 @@ QString tenseName(const QString &language, const QString &tense)
 
 QString subjectName(const QString &language, const QString &subject)
 {
+    if (language == QLatin1String("German")) {
+        if (subject == QLatin1String("1psing")) return QStringLiteral("ich");
+        if (subject == QLatin1String("1ppl")) return QStringLiteral("wir");
+        if (subject == QLatin1String("2pfam")) return QStringLiteral("du");
+        if (subject == QLatin1String("2pfampl")) return QStringLiteral("ihr");
+        if (subject == QLatin1String("2ppol")) return QStringLiteral("Sie (formal singular)");
+        if (subject == QLatin1String("2ppolpl")) return QStringLiteral("Sie (formal plural)");
+        if (subject == QLatin1String("3psing")) return QStringLiteral("er / sie / es");
+        if (subject == QLatin1String("3ppl")) return QStringLiteral("sie (plural)");
+        return subject;
+    }
     if (language == QLatin1String("Russian")) {
         if (subject == QLatin1String("1psing")) return QStringLiteral("я");
         if (subject == QLatin1String("2psing")) return QStringLiteral("ты");

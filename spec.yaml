@@ -4,7 +4,7 @@ specs:
     genders: ['m', 'f', 'n']
     numCases: 4
     cases: ['nominative', 'accusative', 'dative', 'genitive']
-    nounsInflect: 0
+    nounsInflect: 1
     verbConjugations: ['1psing', '1ppl', '2pfam', '2pfampl', '2ppol', '2ppolpl', '3psing', '3ppl']
     tenses: ['present', 'future', 'simple_past', 'pres_perf']
   Russian:

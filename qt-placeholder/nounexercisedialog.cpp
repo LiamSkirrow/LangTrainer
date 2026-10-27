@@ -1,9 +1,9 @@
 #include "nounexercisedialog.h"
 #include "russiankeyboard.h"
+#include "germankeyboard.h"
 
 #include <QDialogButtonBox>
 #include <QFont>
-#include <QFormLayout>
 #include <QHash>
 #include <QHeaderView>
 #include <QGroupBox>
@@ -12,16 +12,17 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QRandomGenerator>
+#include <QSizePolicy>
 #include <QTreeWidget>
 #include <QVBoxLayout>
 #include <QWidget>
 
 namespace {
 
-QString normalizedAnswer(const QString &answer)
+QString normalizedAnswer(const QString &answer, bool preserveCase)
 {
-    return answer.simplified().toCaseFolded()
-                 .normalized(QString::NormalizationForm_C);
+    const QString normalized = answer.simplified().normalized(QString::NormalizationForm_C);
+    return preserveCase ? normalized : normalized.toCaseFolded();
 }
 
 } // namespace
@@ -30,24 +31,34 @@ NounExerciseDialog::NounExerciseDialog(const NounCatalog &catalog,
                                        const QStringList &selectedNouns,
                                        const QStringList &selectedTargets,
                                        Mode mode, QWidget *parent)
-    : QDialog(parent), mode_(mode)
+    : QDialog(parent), mode_(mode), language_(catalog.language)
 {
-    setWindowTitle(mode_ == Mode::Declension
-                       ? QStringLiteral("Russian noun declension")
-                       : QStringLiteral("Russian prepositions"));
-    resize(530, 400);
-    setMinimumWidth(460);
+    setWindowTitle(QStringLiteral("%1 %2").arg(language_, mode_ == Mode::Declension
+                       ? QStringLiteral("noun declension") : QStringLiteral("prepositions")));
+    resize(620, 480);
+    setMinimumSize(480, 440);
 
     for (const QString &target : selectedTargets) {
         const QString caseKey = mode_ == Mode::Declension
-                                    ? target : catalog.prepositionCase.value(target);
-        for (const QString &noun : selectedNouns) {
-            prompts_.append({noun, catalog.english.value(noun), caseKey,
-                             mode_ == Mode::Prepositions
-                                 ? catalog.prepositionRussian.value(target) : QString(),
-                             mode_ == Mode::Prepositions
-                                 ? catalog.prepositionEnglish.value(target) : QString(),
-                             catalog.form(noun, caseKey)});
+                                    ? (language_ == QLatin1String("German")
+                                           ? target.section(QLatin1Char('-'), 1)
+                                           : target)
+                                    : catalog.prepositionCase.value(target);
+        const QStringList numbers = mode_ == Mode::Declension
+            ? QStringList{language_ == QLatin1String("German")
+                              ? target.section(QLatin1Char('-'), 0, 0)
+                              : QStringLiteral("singular")}
+            : catalog.numbers;
+        for (const QString &number : numbers) {
+            for (const QString &noun : selectedNouns) {
+                prompts_.append({noun, catalog.english.value(noun), catalog.gender.value(noun),
+                                 number, caseKey,
+                                 mode_ == Mode::Prepositions
+                                     ? catalog.prepositionSpelling.value(target) : QString(),
+                                 mode_ == Mode::Prepositions
+                                     ? catalog.prepositionEnglish.value(target) : QString(),
+                                 catalog.form(noun, caseKey, number)});
+            }
         }
     }
     for (int i = prompts_.size() - 1; i > 0; --i)
@@ -62,22 +73,45 @@ NounExerciseDialog::NounExerciseDialog(const NounCatalog &catalog,
     progressRow->addWidget(queueLabel_);
     layout->addLayout(progressRow);
 
-    auto *promptGroup = new QGroupBox(mode_ == Mode::Declension
-                                         ? QStringLiteral("Decline the noun")
-                                         : QStringLiteral("Decline the noun after the preposition"));
-    auto *promptLayout = new QFormLayout(promptGroup);
+    auto *promptGroup = new QGroupBox(language_ == QLatin1String("German")
+        ? (mode_ == Mode::Declension
+               ? QStringLiteral("Decline the article and noun")
+               : QStringLiteral("Decline the article and noun after the preposition"))
+        : (mode_ == Mode::Declension
+               ? QStringLiteral("Decline the noun")
+               : QStringLiteral("Decline the noun after the preposition")));
+    auto *promptLayout = new QVBoxLayout(promptGroup);
+    promptLayout->setContentsMargins(14, 16, 14, 14);
+    promptLayout->setSpacing(3);
     nounLabel_ = new QLabel;
     targetLabel_ = new QLabel;
-    targetLabel_->setWordWrap(true);
-    promptLayout->addRow("Noun:", nounLabel_);
-    promptLayout->addRow(mode_ == Mode::Declension ? "Case:" : "Preposition:", targetLabel_);
-    promptLayout->addRow("Number:", new QLabel("Singular"));
+    numberLabel_ = new QLabel;
+    const auto addField = [promptLayout](const QString &caption, QLabel *value) {
+        auto *heading = new QLabel(caption);
+        QFont headingFont = heading->font();
+        headingFont.setBold(true);
+        heading->setFont(headingFont);
+        promptLayout->addWidget(heading);
+        value->setTextFormat(Qt::PlainText);
+        value->setWordWrap(true);
+        value->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+        promptLayout->addWidget(value);
+        promptLayout->addSpacing(7);
+    };
+    addField(QStringLiteral("Noun"), nounLabel_);
+    addField(mode_ == Mode::Declension ? QStringLiteral("Case")
+                                     : QStringLiteral("Preposition"), targetLabel_);
+    addField(QStringLiteral("Number"), numberLabel_);
     layout->addWidget(promptGroup);
 
     answerEdit_ = new QLineEdit;
-    answerEdit_->setPlaceholderText("Type the declined noun only (Cyrillic)");
+    answerEdit_->setPlaceholderText(language_ == QLatin1String("German")
+        ? QStringLiteral("Type the definite article and noun (include capitals)")
+        : QStringLiteral("Type the declined noun only (Cyrillic)"));
     layout->addWidget(answerEdit_);
-    keyboard_ = createRussianKeyboard(answerEdit_, this);
+    keyboard_ = language_ == QLatin1String("German")
+                    ? createGermanKeyboard(answerEdit_, this)
+                    : createRussianKeyboard(answerEdit_, this);
     layout->addWidget(keyboard_);
 
     feedbackLabel_ = new QLabel;
@@ -126,11 +160,18 @@ void NounExerciseDialog::showQuestion()
                                  .arg(questionIndex_ + 1).arg(prompts_.size()));
     queueLabel_->setText(QStringLiteral("Waiting in queue: %1")
                              .arg(prompts_.size() - questionIndex_ - 1));
-    nounLabel_->setText(QStringLiteral("%1 — %2").arg(prompt.noun, prompt.meaning));
+    const QString article = prompt.gender == QLatin1String("m") ? QStringLiteral("der")
+        : prompt.gender == QLatin1String("f") ? QStringLiteral("die")
+        : QStringLiteral("das");
+    nounLabel_->setText(language_ == QLatin1String("German")
+        ? QStringLiteral("%1 %2 — %3").arg(article, prompt.noun, prompt.meaning)
+        : QStringLiteral("%1 — %2").arg(prompt.noun, prompt.meaning));
     targetLabel_->setText(mode_ == Mode::Declension
-                              ? russianCaseName(prompt.caseKey)
+                              ? caseName(prompt.caseKey)
                               : QStringLiteral("%1 — %2")
                                     .arg(prompt.preposition, prompt.prepositionMeaning));
+    numberLabel_->setText(prompt.number == QLatin1String("plural")
+                              ? QStringLiteral("Plural") : QStringLiteral("Singular"));
     answerEdit_->clear();
     answerEdit_->setEnabled(true);
     keyboard_->setEnabled(true);
@@ -151,7 +192,9 @@ void NounExerciseDialog::checkAnswer()
     if (answerEdit_->text().trimmed().isEmpty()) return;
     ++attempted_;
     const Prompt &prompt = prompts_.at(questionIndex_);
-    const bool correct = normalizedAnswer(answerEdit_->text()) == normalizedAnswer(prompt.answer);
+    const bool preserveCase = language_ == QLatin1String("German");
+    const bool correct = normalizedAnswer(answerEdit_->text(), preserveCase) ==
+                         normalizedAnswer(prompt.answer, preserveCase);
     if (correct)
         ++correct_;
     else
@@ -159,7 +202,7 @@ void NounExerciseDialog::checkAnswer()
     feedbackLabel_->setText(QStringLiteral("%1 %2 (%3 case).")
                                 .arg(correct ? QStringLiteral("Correct! Form:")
                                              : QStringLiteral("Correct form:"),
-                                     prompt.answer, russianCaseName(prompt.caseKey)));
+                                     prompt.answer, caseName(prompt.caseKey)));
     answerEdit_->setEnabled(false);
     keyboard_->setEnabled(false);
     checkButton_->setEnabled(false);
@@ -176,7 +219,7 @@ void NounExerciseDialog::revealAnswer()
     ++skipped_;
     const Prompt &prompt = prompts_.at(questionIndex_);
     feedbackLabel_->setText(QStringLiteral("Answer: %1 (%2 case).")
-                                .arg(prompt.answer, russianCaseName(prompt.caseKey)));
+                                .arg(prompt.answer, caseName(prompt.caseKey)));
     answerEdit_->setEnabled(false);
     keyboard_->setEnabled(false);
     checkButton_->setEnabled(false);
@@ -198,8 +241,8 @@ QString NounExerciseDialog::targetName(const Prompt &prompt) const
 {
     if (mode_ == Mode::Prepositions)
         return QStringLiteral("%1 (%2 case)")
-            .arg(prompt.preposition, russianCaseName(prompt.caseKey));
-    return russianCaseName(prompt.caseKey);
+            .arg(prompt.preposition, caseName(prompt.caseKey));
+    return QStringLiteral("%1 %2").arg(prompt.number, caseName(prompt.caseKey));
 }
 
 void NounExerciseDialog::finishSession()
@@ -210,9 +253,9 @@ void NounExerciseDialog::finishSession()
     summary.setMinimumSize(520, 300);
 
     auto *layout = new QVBoxLayout(&summary);
-    auto *heading = new QLabel(mode_ == Mode::Declension
-                                   ? QStringLiteral("Russian noun practice — session summary")
-                                   : QStringLiteral("Russian preposition practice — session summary"));
+    auto *heading = new QLabel(QStringLiteral("%1 %2 practice — session summary")
+        .arg(language_, mode_ == Mode::Declension ? QStringLiteral("noun")
+                                                 : QStringLiteral("preposition")));
     QFont headingFont = heading->font();
     headingFont.setBold(true);
     heading->setFont(headingFont);
@@ -256,8 +299,8 @@ void NounExerciseDialog::finishSession()
                 groups.insert(groupName, group);
             }
             auto *item = new QTreeWidgetItem(group);
-            item->setText(0, QStringLiteral("%1 — %2")
-                                 .arg(card.prompt.noun, card.prompt.meaning));
+            item->setText(0, QStringLiteral("%1 — %2 (%3)")
+                                 .arg(card.prompt.noun, card.prompt.meaning, card.prompt.number));
             item->setText(1, card.response);
             item->setText(2, card.prompt.answer);
             item->setToolTip(0, item->text(0));

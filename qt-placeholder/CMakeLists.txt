@@ -17,6 +17,8 @@ add_executable(LangTrainer
     noundata.h
     russiankeyboard.cpp
     russiankeyboard.h
+    germankeyboard.cpp
+    germankeyboard.h
     nounformsdialog.cpp
     nounformsdialog.h
     nounexercisedialog.cpp

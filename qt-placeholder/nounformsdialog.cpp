@@ -12,7 +12,7 @@ NounFormsDialog::NounFormsDialog(const NounCatalog &catalog, const QString &noun
     : QDialog(parent)
 {
     setWindowTitle(QStringLiteral("%1 — noun forms").arg(noun));
-    resize(440, 420);
+    resize(520, 460);
     setMinimumSize(360, 320);
 
     auto *layout = new QVBoxLayout(this);
@@ -22,20 +22,24 @@ NounFormsDialog::NounFormsDialog(const NounCatalog &catalog, const QString &noun
     headingFont.setBold(true);
     heading->setFont(headingFont);
     layout->addWidget(heading);
-    layout->addWidget(new QLabel("Singular forms"));
-
     auto *forms = new QTreeWidget;
-    forms->setHeaderLabels({QStringLiteral("Case"), QStringLiteral("Correct form")});
+    forms->setHeaderLabels({QStringLiteral("Number / case"), QStringLiteral("Correct form")});
     forms->setAlternatingRowColors(true);
     forms->setUniformRowHeights(true);
     forms->setEditTriggers(QAbstractItemView::NoEditTriggers);
     forms->setColumnWidth(0, 160);
     forms->header()->setStretchLastSection(true);
-    for (const QString &caseKey : catalog.cases) {
-        auto *item = new QTreeWidgetItem(forms);
-        item->setText(0, russianCaseName(caseKey));
-        item->setText(1, catalog.form(noun, caseKey));
+    for (const QString &number : catalog.numbers) {
+        auto *numberItem = new QTreeWidgetItem(forms);
+        numberItem->setText(0, number == QLatin1String("plural")
+                                   ? QStringLiteral("Plural") : QStringLiteral("Singular"));
+        for (const QString &caseKey : catalog.cases) {
+            auto *item = new QTreeWidgetItem(numberItem);
+            item->setText(0, caseName(caseKey));
+            item->setText(1, catalog.form(noun, caseKey, number));
+        }
     }
+    forms->expandAll();
     layout->addWidget(forms);
 
     auto *buttons = new QDialogButtonBox(QDialogButtonBox::Close);

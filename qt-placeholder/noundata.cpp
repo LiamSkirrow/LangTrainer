@@ -51,19 +51,24 @@ bool readResource(const QString &path, QStringList &lines, QString &error)
 
 } // namespace
 
-QString NounCatalog::form(const QString &noun, const QString &caseKey) const
+QString NounCatalog::form(const QString &noun, const QString &caseKey,
+                          const QString &number) const
 {
-    return forms.value(caseKey).value(noun);
+    return forms.value(number + QLatin1Char('-') + caseKey).value(noun);
 }
 
-bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
+bool loadNounCatalog(const QString &language, NounCatalog &catalog, QString &error)
 {
     QStringList lines;
     if (!readResource(QStringLiteral(":/data/language.yaml"), lines, error))
         return false;
 
     NounCatalog loaded;
-    bool inRussian = false;
+    loaded.language = language;
+    loaded.numbers = language == QLatin1String("German")
+                         ? QStringList{QStringLiteral("singular"), QStringLiteral("plural")}
+                         : QStringList{QStringLiteral("singular")};
+    bool inLanguage = false;
     QString field;
     for (const QString &line : lines) {
         const QString content = line.trimmed();
@@ -71,11 +76,11 @@ bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
             continue;
         const int depth = indentation(line);
         if (depth == 2 && content.endsWith(QLatin1Char(':'))) {
-            inRussian = content == QLatin1String("Russian:");
+            inLanguage = content == language + QLatin1Char(':');
             field.clear();
             continue;
         }
-        if (!inRussian)
+        if (!inLanguage)
             continue;
         if (depth == 4 && content.endsWith(QLatin1Char(':'))) {
             field = content.left(content.size() - 1);
@@ -100,10 +105,12 @@ bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
             loaded.english.insert(key, value);
         else if (field == QLatin1String("Nouns-gender"))
             loaded.gender.insert(key, value);
-        else if (field.startsWith(QLatin1String("Nouns-singular-")))
-            loaded.forms[field.mid(15)].insert(key, value);
-        else if (field == QLatin1String("Prepositions-ru"))
-            loaded.prepositionRussian.insert(key, value);
+        else if (field.startsWith(QLatin1String("Nouns-singular-")) ||
+                 field.startsWith(QLatin1String("Nouns-plural-")))
+            loaded.forms[field.mid(6)].insert(key, value);
+        else if (field == (language == QLatin1String("German")
+                              ? QLatin1String("Prepositions-de") : QLatin1String("Prepositions-ru")))
+            loaded.prepositionSpelling.insert(key, value);
         else if (field == QLatin1String("Prepositions-en"))
             loaded.prepositionEnglish.insert(key, value);
         else if (field == QLatin1String("Prepositions-case"))
@@ -112,17 +119,17 @@ bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
 
     if (!readResource(QStringLiteral(":/data/spec.yaml"), lines, error))
         return false;
-    inRussian = false;
+    inLanguage = false;
     for (const QString &line : lines) {
         const QString content = line.trimmed();
         if (content.isEmpty() || content.startsWith(QLatin1Char('#')))
             continue;
         const int depth = indentation(line);
         if (depth == 2 && content.endsWith(QLatin1Char(':'))) {
-            inRussian = content == QLatin1String("Russian:");
+            inLanguage = content == language + QLatin1Char(':');
             continue;
         }
-        if (!inRussian || depth != 4)
+        if (!inLanguage || depth != 4)
             continue;
         const int separator = content.indexOf(QLatin1Char(':'));
         if (separator > 0 && content.left(separator) == QLatin1String("cases"))
@@ -130,36 +137,40 @@ bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
     }
 
     if (loaded.nouns.isEmpty() || loaded.cases.isEmpty() || loaded.prepositions.isEmpty()) {
-        error = QStringLiteral("The Russian noun, case, or preposition list is empty.");
+        error = QStringLiteral("The %1 noun, case, or preposition list is empty.").arg(language);
         return false;
     }
     QSet<QString> seen;
     for (const QString &noun : loaded.nouns) {
         if (seen.contains(noun)) {
-            error = QStringLiteral("Duplicate Russian noun: %1.").arg(noun);
+            error = QStringLiteral("Duplicate %1 noun: %2.").arg(language, noun);
             return false;
         }
         seen.insert(noun);
         if (loaded.english.value(noun).isEmpty() || loaded.gender.value(noun).isEmpty()) {
-            error = QStringLiteral("Missing English meaning or gender for Russian noun %1.").arg(noun);
+            error = QStringLiteral("Missing English meaning or gender for %1 noun %2.")
+                        .arg(language, noun);
             return false;
         }
-        for (const QString &caseKey : loaded.cases) {
-            if (loaded.form(noun, caseKey).isEmpty()) {
-                error = QStringLiteral("Missing Nouns-singular-%1 for %2.").arg(caseKey, noun);
-                return false;
+        for (const QString &number : loaded.numbers) {
+            for (const QString &caseKey : loaded.cases) {
+                if (loaded.form(noun, caseKey, number).isEmpty()) {
+                    error = QStringLiteral("Missing Nouns-%1-%2 for %3.")
+                                .arg(number, caseKey, noun);
+                    return false;
+                }
             }
         }
     }
     seen.clear();
     for (const QString &preposition : loaded.prepositions) {
         if (seen.contains(preposition)) {
-            error = QStringLiteral("Duplicate Russian preposition: %1.").arg(preposition);
+            error = QStringLiteral("Duplicate %1 preposition: %2.").arg(language, preposition);
             return false;
         }
         seen.insert(preposition);
         const QString caseKey = loaded.prepositionCase.value(preposition);
-        if (loaded.prepositionRussian.value(preposition).isEmpty() ||
+        if (loaded.prepositionSpelling.value(preposition).isEmpty() ||
             loaded.prepositionEnglish.value(preposition).isEmpty() ||
             !loaded.cases.contains(caseKey) || caseKey == QLatin1String("nominative")) {
             error = QStringLiteral("Missing spelling, meaning, or valid governed case for %1.").arg(preposition);
@@ -171,7 +182,12 @@ bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
     return true;
 }
 
-QString russianCaseName(const QString &caseKey)
+bool loadRussianNounCatalog(NounCatalog &catalog, QString &error)
+{
+    return loadNounCatalog(QStringLiteral("Russian"), catalog, error);
+}
+
+QString caseName(const QString &caseKey)
 {
     if (caseKey.isEmpty()) return {};
     return caseKey.left(1).toUpper() + caseKey.mid(1);

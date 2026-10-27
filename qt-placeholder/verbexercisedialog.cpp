@@ -1,5 +1,6 @@
 #include "verbexercisedialog.h"
 #include "russiankeyboard.h"
+#include "germankeyboard.h"
 
 #include <QDialogButtonBox>
 #include <QFont>
@@ -70,11 +71,15 @@ VerbExerciseDialog::VerbExerciseDialog(const VerbCatalog &catalog,
     answerEdit_ = new QLineEdit;
     answerEdit_->setPlaceholderText(language_ == QLatin1String("Russian")
         ? QStringLiteral("Type the Russian form in Cyrillic")
-        : QStringLiteral("Type the Spanish form (include accents)"));
+        : language_ == QLatin1String("German")
+            ? QStringLiteral("Type the full German verb form")
+            : QStringLiteral("Type the Spanish form (include accents)"));
     layout->addWidget(answerEdit_);
 
     if (language_ == QLatin1String("Russian")) {
         characterRow_ = createRussianKeyboard(answerEdit_, this);
+    } else if (language_ == QLatin1String("German")) {
+        characterRow_ = createGermanKeyboard(answerEdit_, this);
     } else {
         characterRow_ = new QWidget;
         auto *characterLayout = new QHBoxLayout(characterRow_);

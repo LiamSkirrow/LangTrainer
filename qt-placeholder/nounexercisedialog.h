@@ -21,6 +21,8 @@ private:
     struct Prompt {
         QString noun;
         QString meaning;
+        QString gender;
+        QString number;
         QString caseKey;
         QString preposition;
         QString prepositionMeaning;
@@ -39,6 +41,7 @@ private:
     QString targetName(const Prompt &prompt) const;
 
     Mode mode_;
+    QString language_;
     QVector<Prompt> prompts_;
     QVector<IncorrectCard> incorrectCards_;
     int questionIndex_ = 0;
@@ -49,6 +52,7 @@ private:
     QLabel *queueLabel_ = nullptr;
     QLabel *nounLabel_ = nullptr;
     QLabel *targetLabel_ = nullptr;
+    QLabel *numberLabel_ = nullptr;
     QLabel *feedbackLabel_ = nullptr;
     QLabel *scoreLabel_ = nullptr;
     QLineEdit *answerEdit_ = nullptr;
