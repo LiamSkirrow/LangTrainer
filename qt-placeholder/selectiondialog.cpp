@@ -5,10 +5,12 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
+#include <QOperatingSystemVersion>
 #include <QPushButton>
 #include <QSet>
 #include <QSettings>
 #include <QSignalBlocker>
+#include <QStyleFactory>
 #include <QVBoxLayout>
 
 SelectionDialog::SelectionDialog(const SelectionDialogConfig &config, QWidget *parent)
@@ -42,6 +44,15 @@ SelectionDialog::SelectionDialog(const SelectionDialogConfig &config, QWidget *p
 
     itemList_ = new QListWidget;
     itemList_->setAlternatingRowColors(true);
+#if defined(Q_OS_MACOS) && QT_VERSION < QT_VERSION_CHECK(6, 12, 1)
+    // QTBUG-150017: native item-view check indicators disappear on macOS 27.
+    if (QOperatingSystemVersion::current() >= QOperatingSystemVersion(QOperatingSystemVersion::MacOS, 27)) {
+        if (auto *fusionStyle = QStyleFactory::create(QStringLiteral("Fusion"))) {
+            fusionStyle->setParent(itemList_);
+            itemList_->setStyle(fusionStyle);
+        }
+    }
+#endif
     layout->addWidget(itemList_);
 
     QSettings settings;

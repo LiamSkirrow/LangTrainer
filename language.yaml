@@ -4610,6 +4610,89 @@ languages:
       Wort: "der Wörter"
       Mädchen: "der Mädchen"
       Telefon: "der Telefone"
+    # Attributive adjective bases; uncommon stem contractions are explicit.
+    Adjectives:
+      - gut
+      - schlecht
+      - klein
+      - groß
+      - alt
+      - neu
+      - jung
+      - schön
+      - schnell
+      - langsam
+      - lang
+      - kurz
+      - warm
+      - kalt
+      - heiß
+      - leicht
+      - schwer
+      - stark
+      - schwach
+      - hell
+      - dunkel
+      - sauber
+      - schmutzig
+      - interessant
+      - wichtig
+      - richtig
+      - falsch
+      - freundlich
+      - ruhig
+      - teuer
+      - billig
+      - hoch
+      - tief
+      - rot
+      - blau
+      - grün
+      - weiß
+      - schwarz
+    Adjectives-en:
+      gut: "good"
+      schlecht: "bad"
+      klein: "small"
+      groß: "big / tall"
+      alt: "old"
+      neu: "new"
+      jung: "young"
+      schön: "beautiful"
+      schnell: "fast"
+      langsam: "slow"
+      lang: "long"
+      kurz: "short"
+      warm: "warm"
+      kalt: "cold"
+      heiß: "hot"
+      leicht: "easy / light"
+      schwer: "difficult / heavy"
+      stark: "strong"
+      schwach: "weak"
+      hell: "bright / light"
+      dunkel: "dark"
+      sauber: "clean"
+      schmutzig: "dirty"
+      interessant: "interesting"
+      wichtig: "important"
+      richtig: "correct"
+      falsch: "wrong"
+      freundlich: "friendly"
+      ruhig: "calm / quiet"
+      teuer: "expensive"
+      billig: "cheap"
+      hoch: "high"
+      tief: "deep / low"
+      rot: "red"
+      blau: "blue"
+      grün: "green"
+      weiß: "white"
+      schwarz: "black"
+    Adjectives-stem:
+      dunkel: "dunkl"
+      teuer: "teur"
+      hoch: "hoh"
     # Two-way prepositions have separate location and destination cards.
     Prepositions:
       - aus

@@ -8,6 +8,10 @@
 #include "pronoundata.h"
 #include "pronounformsdialog.h"
 #include "pronounexercisedialog.h"
+#include "adjectivedata.h"
+#include "adjectiveformsdialog.h"
+#include "adjectivetargetsdialog.h"
+#include "adjectiveexercisedialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -53,8 +57,8 @@ public:
     MainWindow()
     {
         setWindowTitle("LangTrainer");
-        resize(780, 620);
-        setMinimumSize(650, 540);
+        resize(800, 660);
+        setMinimumSize(650, 560);
 
         auto *central = new QWidget(this);
         auto *layout = new QVBoxLayout(central);
@@ -184,12 +188,15 @@ private:
         auto *pronounButton = addPracticeRow(grid, 2, "Pronoun declension",
             "Practise personal and possessive pronouns in all four cases.", "Choose pronouns...", true);
         connect(pronounButton, &QPushButton::clicked, this, [this] { startPronounPractice(); });
-        auto *prepositionButton = addPracticeRow(grid, 3, "Prepositions",
+        auto *adjectiveButton = addPracticeRow(grid, 3, "Adjective endings",
+            "Practise endings after articles and without an article.", "Choose adjectives...", true);
+        connect(adjectiveButton, &QPushButton::clicked, this, [this] { startAdjectivePractice(); });
+        auto *prepositionButton = addPracticeRow(grid, 4, "Prepositions",
             "Choose the noun phrase required by each preposition.", "Choose nouns...", true);
         connect(prepositionButton, &QPushButton::clicked, this, [this] { startPrepositionPractice(QStringLiteral("German")); });
-        addPracticeRow(grid, 4, "Sentence practice",
+        addPracticeRow(grid, 5, "Sentence practice",
             "Use words and grammar together in context.", "Practise", false);
-        addPracticeRow(grid, 5, "Listening and speaking",
+        addPracticeRow(grid, 6, "Listening and speaking",
             "Respond to spoken prompts.", "Practise", false);
         return group;
     }
@@ -243,6 +250,43 @@ private:
 
         PronounExerciseDialog exercise(catalog, pronouns.selectedValues(),
                                        cases.selectedValues(), this);
+        exercise.exec();
+    }
+
+    void startAdjectivePractice()
+    {
+        AdjectiveCatalog catalog;
+        QString error;
+        if (!loadGermanAdjectiveCatalog(catalog, error)) {
+            QMessageBox::critical(this, "Vocabulary error", error);
+            return;
+        }
+
+        SelectionDialogConfig config;
+        config.title = "Choose German adjectives";
+        config.instruction = "Check adjectives to practise. Highlight one to view its endings.";
+        config.searchPlaceholder = "Search adjectives or English meanings...";
+        config.itemName = "adjectives";
+        config.settingsKey = "German/adjectiveEndings/selectedAdjectives";
+        config.continueLabel = "Next: targets";
+        config.detailsLabel = "View forms...";
+        config.showDetails = [&catalog](const QString &adjective, QWidget *parent) {
+            AdjectiveFormsDialog forms(catalog, adjective, parent);
+            forms.exec();
+        };
+        QStringList sorted = catalog.adjectives;
+        sorted.sort(Qt::CaseInsensitive);
+        for (const QString &adjective : sorted)
+            config.options.append({adjective, QStringLiteral("%1 — %2")
+                                       .arg(adjective, catalog.english.value(adjective))});
+        SelectionDialog adjectives(config, this);
+        if (adjectives.exec() != QDialog::Accepted) return;
+
+        AdjectiveTargetsDialog targets(adjectives.selectedValues().size(), this);
+        if (targets.exec() != QDialog::Accepted) return;
+
+        AdjectiveExerciseDialog exercise(catalog, adjectives.selectedValues(),
+                                         targets.targets(), this);
         exercise.exec();
     }
 
@@ -449,6 +493,14 @@ int main(int argc, char *argv[])
         }
         qInfo().noquote() << QStringLiteral("Loaded %1 German pronoun bases across %2 cases.")
                                  .arg(pronouns.pronouns.size()).arg(pronouns.cases.size());
+        AdjectiveCatalog adjectives;
+        QString adjectiveError;
+        if (!loadGermanAdjectiveCatalog(adjectives, adjectiveError)) {
+            qCritical().noquote() << adjectiveError;
+            return 1;
+        }
+        qInfo().noquote() << QStringLiteral("Loaded %1 German adjectives across 3 article patterns and 4 cases.")
+                                 .arg(adjectives.adjectives.size());
         return 0;
     }
 

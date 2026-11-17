@@ -139,6 +139,49 @@ nouns = [
     ("Telefon", "telephone", "n", "Telefons", "Telefon", "Telefon", "Telefone", "Telefonen"),
 ]
 
+# Base adjective, English meaning, optional stem before an ending. The shared
+# weak/mixed/strong ending tables are implemented in adjectivedata.cpp.
+adjectives = [
+    ("gut", "good", None),
+    ("schlecht", "bad", None),
+    ("klein", "small", None),
+    ("groß", "big / tall", None),
+    ("alt", "old", None),
+    ("neu", "new", None),
+    ("jung", "young", None),
+    ("schön", "beautiful", None),
+    ("schnell", "fast", None),
+    ("langsam", "slow", None),
+    ("lang", "long", None),
+    ("kurz", "short", None),
+    ("warm", "warm", None),
+    ("kalt", "cold", None),
+    ("heiß", "hot", None),
+    ("leicht", "easy / light", None),
+    ("schwer", "difficult / heavy", None),
+    ("stark", "strong", None),
+    ("schwach", "weak", None),
+    ("hell", "bright / light", None),
+    ("dunkel", "dark", "dunkl"),
+    ("sauber", "clean", None),
+    ("schmutzig", "dirty", None),
+    ("interessant", "interesting", None),
+    ("wichtig", "important", None),
+    ("richtig", "correct", None),
+    ("falsch", "wrong", None),
+    ("freundlich", "friendly", None),
+    ("ruhig", "calm / quiet", None),
+    ("teuer", "expensive", "teur"),
+    ("billig", "cheap", None),
+    ("hoch", "high", "hoh"),
+    ("tief", "deep / low", None),
+    ("rot", "red", None),
+    ("blau", "blue", None),
+    ("grün", "green", None),
+    ("weiß", "white", None),
+    ("schwarz", "black", None),
+]
+
 # Key, spelling, meaning/context, governed case. Two-way senses are distinct.
 prepositions = [
     ("aus", "aus", "out of / from", "dative"),
@@ -296,6 +339,14 @@ def generate():
                 pairs.append((noun, f"{article} {stem}"))
             mapping(lines, f"Nouns-{number}-{case}", pairs)
 
+    lines.extend(["    # Attributive adjective bases; uncommon stem contractions are explicit.",
+                  "    Adjectives:"])
+    lines.extend(f"      - {adjective}" for adjective, _, _ in adjectives)
+    mapping(lines, "Adjectives-en", ((adjective, meaning)
+                                      for adjective, meaning, _ in adjectives))
+    mapping(lines, "Adjectives-stem", ((adjective, stem)
+                                        for adjective, _, stem in adjectives if stem))
+
     lines.extend(["    # Two-way prepositions have separate location and destination cards.", "    Prepositions:"])
     lines.extend(f"      - {key}" for key, *_ in prepositions)
     mapping(lines, "Prepositions-de", ((key, spelling) for key, spelling, *_ in prepositions))
@@ -328,5 +379,6 @@ if __name__ == "__main__":
     end = text.index("  Russian:\n", start)
     path.write_text(text[:start] + generate() + text[end:], encoding="utf-8")
     print(f"Wrote {len(verbs)} verbs ({len(separable)} separable), "
-          f"{len(nouns)} nouns, {len(prepositions)} preposition meanings, and "
+          f"{len(nouns)} nouns, {len(adjectives)} adjectives, "
+          f"{len(prepositions)} preposition meanings, and "
           f"{len(personal_pronouns) + len(possessive_pronouns)} pronoun bases.")
