@@ -37,6 +37,8 @@ add_executable(LangTrainer
     adjectivetargetsdialog.h
     adjectiveexercisedialog.cpp
     adjectiveexercisedialog.h
+    sentenceconstructiondialog.cpp
+    sentenceconstructiondialog.h
     selectiondialog.cpp
     selectiondialog.h
     verbformsdialog.cpp

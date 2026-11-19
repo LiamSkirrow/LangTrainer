@@ -12,6 +12,7 @@
 #include "adjectiveformsdialog.h"
 #include "adjectivetargetsdialog.h"
 #include "adjectiveexercisedialog.h"
+#include "sentenceconstructiondialog.h"
 
 #include <QApplication>
 #include <QDebug>
@@ -194,8 +195,13 @@ private:
         auto *prepositionButton = addPracticeRow(grid, 4, "Prepositions",
             "Choose the noun phrase required by each preposition.", "Choose nouns...", true);
         connect(prepositionButton, &QPushButton::clicked, this, [this] { startPrepositionPractice(QStringLiteral("German")); });
-        addPracticeRow(grid, 5, "Sentence practice",
-            "Use words and grammar together in context.", "Practise", false);
+        auto *sentenceButton = addPracticeRow(grid, 5, "Sentence Construction",
+            "Choose grammar points for future English-to-German translation cards.",
+            "Choose grammar...", true);
+        connect(sentenceButton, &QPushButton::clicked, this, [this] {
+            SentenceConstructionDialog options(this);
+            options.exec();
+        });
         addPracticeRow(grid, 6, "Listening and speaking",
             "Respond to spoken prompts.", "Practise", false);
         return group;

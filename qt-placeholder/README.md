@@ -2,7 +2,9 @@
 
 Open `qt-placeholder/CMakeLists.txt` in Qt Creator, select a Qt 5 or Qt 6 Desktop kit, then build and run.
 
-The home window keeps language and practice mode choices together. Spanish has Verb conjugation, Sentence practice, and Listening and speaking. Russian and German also have Noun declension and Prepositions. German additionally has Pronoun declension and Adjective endings. Verb, noun, preposition, German pronoun, and German adjective practice are available where shown; Sentence practice and Listening and speaking remain disabled placeholders.
+The home window keeps language and practice mode choices together. Spanish has Verb conjugation, Sentence practice, and Listening and speaking. Russian and German also have Noun declension and Prepositions. German additionally has Pronoun declension, Adjective endings, and Sentence Construction. Verb, noun, preposition, German pronoun, and German adjective practice are available where shown. Spanish and Russian Sentence practice and all Listening and speaking rows remain disabled placeholders.
+
+German Sentence Construction opens a checkbox menu for verb forms, noun cases, pronouns, adjective endings, prepositions, sentence structure, subordinate clauses, and relative clauses in all four relative-pronoun cases. A TODO label marks the mode as a work in progress. The choices are a preview only: they are not saved, and the Start practice button stays disabled until sentence cards are implemented.
 
 For verb practice, choose verbs, then tenses. Highlight a verb in the first checklist and use **View forms...** to see its stored conjugations. Russian currently has ten imperfective verbs with present, past, and compound future forms; past tense distinguishes gender where needed.
 
